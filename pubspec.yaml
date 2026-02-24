@@ -1,0 +1,27 @@
+name: periods_tracker
+description: "Private period tracking app."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  table_calendar: ^3.2.0
+  intl: ^0.20.2
+  local_auth: ^2.3.0
+  flutter_local_notifications: ^19.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
