@@ -72,6 +72,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: NavigationBar(
+        elevation: 0,
+        indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() {

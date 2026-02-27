@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/ui/app_shell.dart';
 import '../../core/utils/date_helpers.dart';
 import '../../data/models/cycle_record.dart';
 import '../../providers/app_providers.dart';
@@ -9,8 +10,7 @@ class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   Future<void> _showAddCycleDialog(BuildContext context, WidgetRef ref) async {
-    DateTimeRange? selected;
-    selected = await showDateRangePicker(
+    final selected = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
@@ -34,68 +34,81 @@ class DashboardScreen extends ConsumerWidget {
     final prediction = ref.watch(predictionProvider);
     final cycles = ref.watch(cyclesProvider);
 
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(16),
+    return AppGradientBackground(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'My Cycle Dashboard',
-            style: Theme.of(context).textTheme.headlineSmall,
+          ScreenHeader(
+            title: 'Dashboard',
+            subtitle: 'Track your cycle with private, local data',
+            action: FilledButton.tonalIcon(
+              onPressed: () => _showAddCycleDialog(context, ref),
+              icon: const Icon(Icons.add),
+              label: const Text('Add'),
+            ),
           ),
-          const SizedBox(height: 12),
-          Card(
-            child: ListTile(
-              title: const Text('Next period'),
-              subtitle: Text(
-                prediction.nextPeriodDate == null
-                    ? 'Add at least one cycle'
-                    : formatPretty(prediction.nextPeriodDate!),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: StatTile(
+                  label: 'Next Period',
+                  value: prediction.nextPeriodDate == null
+                      ? '--'
+                      : formatPretty(prediction.nextPeriodDate!),
+                  icon: Icons.favorite_border,
+                  color: const Color(0xFFE7749B),
+                ),
               ),
-              trailing: const Icon(Icons.favorite_outline),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: const Text('Predicted ovulation'),
-              subtitle: Text(
-                prediction.ovulationDate == null
-                    ? 'Needs cycle history'
-                    : formatPretty(prediction.ovulationDate!),
+              const SizedBox(width: 10),
+              Expanded(
+                child: StatTile(
+                  label: 'Ovulation',
+                  value: prediction.ovulationDate == null
+                      ? '--'
+                      : formatPretty(prediction.ovulationDate!),
+                  icon: Icons.eco_outlined,
+                  color: const Color(0xFF46A89D),
+                ),
               ),
-              trailing: const Icon(Icons.eco_outlined),
-            ),
+            ],
           ),
-          Card(
-            child: ListTile(
-              title: const Text('Average cycle length'),
-              subtitle: Text('${prediction.averageCycleLength} days'),
-              trailing: const Icon(Icons.timeline),
-            ),
+          const SizedBox(height: 10),
+          StatTile(
+            label: 'Average Cycle',
+            value: '${prediction.averageCycleLength} days',
+            icon: Icons.timelapse,
+            color: const Color(0xFF7B8AE2),
           ),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            onPressed: () => _showAddCycleDialog(context, ref),
-            icon: const Icon(Icons.add),
-            label: const Text('Log period dates'),
-          ),
-          const SizedBox(height: 24),
-          Text('Recent cycles', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 18),
+          Text('Recent Cycles', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           if (cycles.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('No cycle entries yet.'),
-              ),
-            )
+            const AppSectionCard(child: Text('No cycle entries yet.'))
           else
-            ...cycles.reversed.take(5).map(
-                  (cycle) => Card(
-                    child: ListTile(
-                      title: Text(
-                        '${formatPretty(cycle.startDate)} - ${formatPretty(cycle.endDate)}',
+            ...cycles.reversed.take(6).map(
+                  (cycle) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: AppSectionCard(
+                      padding: const EdgeInsets.all(14),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_month_rounded),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${formatPretty(cycle.startDate)} - ${formatPretty(cycle.endDate)}',
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                Text('${cycle.periodLength} day period'),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      subtitle: Text('${cycle.periodLength} day period'),
                     ),
                   ),
                 ),

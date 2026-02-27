@@ -17,6 +17,7 @@ dependencies:
   intl: ^0.20.2
   local_auth: ^2.3.0
   flutter_local_notifications: ^19.4.0
+  google_fonts: ^8.0.2
 
 dev_dependencies:
   flutter_test:
