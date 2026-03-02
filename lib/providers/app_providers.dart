@@ -129,6 +129,32 @@ final periodDayKeysProvider = Provider<Set<String>>((ref) {
   return keys;
 });
 
+final ovulationDayKeyProvider = Provider<String?>((ref) {
+  final ovulationDate = ref.watch(predictionProvider).ovulationDate;
+  if (ovulationDate == null) {
+    return null;
+  }
+  return dateKey(normalizeDate(ovulationDate));
+});
+
+final fertileDayKeysProvider = Provider<Set<String>>((ref) {
+  final prediction = ref.watch(predictionProvider);
+  final start = prediction.fertileStart;
+  final end = prediction.fertileEnd;
+  if (start == null || end == null) {
+    return <String>{};
+  }
+
+  final keys = <String>{};
+  var current = normalizeDate(start);
+  final last = normalizeDate(end);
+  while (!current.isAfter(last)) {
+    keys.add(dateKey(current));
+    current = current.add(const Duration(days: 1));
+  }
+  return keys;
+});
+
 final symptomCountsProvider = Provider<Map<String, int>>((ref) {
   final entries = ref.watch(symptomsProvider).values;
   final counts = <String, int>{};

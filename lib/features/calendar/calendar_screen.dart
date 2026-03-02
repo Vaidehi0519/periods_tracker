@@ -15,10 +15,13 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
+  DateTime _selectedDay = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
     final periodDays = ref.watch(periodDayKeysProvider);
+    final fertileDays = ref.watch(fertileDayKeysProvider);
+    final ovulationDay = ref.watch(ovulationDayKeyProvider);
     final prediction = ref.watch(predictionProvider);
 
     return AppGradientBackground(
@@ -35,11 +38,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               firstDay: DateTime(2020),
               lastDay: DateTime(2035),
               focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
               availableGestures: AvailableGestures.all,
               calendarFormat: CalendarFormat.month,
               headerStyle: const HeaderStyle(
                 titleCentered: true,
                 formatButtonVisible: false,
+              ),
+              calendarStyle: CalendarStyle(
+                selectedDecoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                todayDecoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
               ),
               onPageChanged: (focusedDay) {
                 setState(() {
@@ -50,17 +70,61 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 defaultBuilder: (context, day, _) {
                   final key = dateKey(day);
                   if (periodDays.contains(key)) {
-                    return _statusDay(context, day, const Color(0xFFE7749B), 'P');
+                    return _statusDay(
+                      context,
+                      day,
+                      bgColor: const Color(0xFFE53935),
+                      showOvulationIcon: false,
+                    );
                   }
-                  if (prediction.ovulationDate != null &&
-                      isSameDay(day, prediction.ovulationDate)) {
-                    return _statusDay(context, day, const Color(0xFF46A89D), 'O');
+                  if (ovulationDay == key) {
+                    return _statusDay(
+                      context,
+                      day,
+                      bgColor: const Color(0xFF1B5E20),
+                      showOvulationIcon: true,
+                    );
                   }
-                  if (prediction.fertileStart != null &&
-                      prediction.fertileEnd != null &&
-                      !day.isBefore(prediction.fertileStart!) &&
-                      !day.isAfter(prediction.fertileEnd!)) {
-                    return _statusDay(context, day, const Color(0xFF70C4B8), 'F');
+                  if (fertileDays.contains(key)) {
+                    return _statusDay(
+                      context,
+                      day,
+                      bgColor: const Color(0xFFA5D6A7),
+                      textColor: const Color(0xFF1B5E20),
+                      showOvulationIcon: false,
+                    );
+                  }
+                  return null;
+                },
+                selectedBuilder: (context, day, focusedDay) {
+                  final key = dateKey(day);
+                  if (periodDays.contains(key)) {
+                    return _statusDay(
+                      context,
+                      day,
+                      bgColor: const Color(0xFFE53935),
+                      borderColor: Theme.of(context).colorScheme.onSurface,
+                      showOvulationIcon: false,
+                    );
+                  }
+                  if (ovulationDay == key) {
+                    return _statusDay(
+                      context,
+                      day,
+                      bgColor: const Color(0xFF1B5E20),
+                      borderColor: Theme.of(context).colorScheme.onSurface,
+                      showOvulationIcon: true,
+                    );
+                  }
+                  if (fertileDays.contains(key)) {
+                    return _statusDay(
+                      context,
+                      day,
+                      bgColor: const Color(0xFFA5D6A7),
+                      textColor: const Color(0xFF1B5E20),
+                      borderColor: Theme.of(context).colorScheme.onSurface,
+                      showOvulationIcon: false,
+                    );
                   }
                   return null;
                 },
@@ -73,9 +137,33 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               spacing: 10,
               runSpacing: 10,
               children: [
-                _LegendChip(label: 'P  Period', color: Color(0xFFE7749B)),
-                _LegendChip(label: 'O  Ovulation', color: Color(0xFF46A89D)),
-                _LegendChip(label: 'F  Fertile', color: Color(0xFF70C4B8)),
+                _LegendChip(label: 'Period', color: Color(0xFFE53935)),
+                _LegendChip(label: 'Fertile window', color: Color(0xFFA5D6A7)),
+                _LegendChip(
+                  label: 'Ovulation',
+                  color: Color(0xFF1B5E20),
+                  icon: Icons.auto_awesome,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          AppSectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Predictions from logged cycles',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  prediction.ovulationDate == null
+                      ? 'Log at least one period to generate predictions.'
+                      : 'Ovulation: ${formatPretty(prediction.ovulationDate!)}\n'
+                          'Fertile window: ${formatPretty(prediction.fertileStart!)} - '
+                          '${formatPretty(prediction.fertileEnd!)}',
+                ),
               ],
             ),
           ),
@@ -84,37 +172,60 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  Widget _statusDay(BuildContext context, DateTime day, Color color, String label) {
+  Widget _statusDay(
+    BuildContext context,
+    DateTime day, {
+    required Color bgColor,
+    required bool showOvulationIcon,
+    Color textColor = Colors.white,
+    Color? borderColor,
+  }) {
     return Container(
       margin: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(10),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: borderColor == null ? null : Border.all(color: borderColor, width: 1.2),
       ),
       alignment: Alignment.center,
-      child: Text(
-        '${day.day}\n$label',
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '${day.day}',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          if (showOvulationIcon)
+            const Icon(
+              Icons.auto_awesome,
+              size: 11,
               color: Colors.white,
-              fontWeight: FontWeight.w700,
-              height: 1.08,
             ),
+        ],
       ),
     );
   }
 }
 
 class _LegendChip extends StatelessWidget {
-  const _LegendChip({required this.label, required this.color});
+  const _LegendChip({required this.label, required this.color, this.icon});
 
   final String label;
   final Color color;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     return Chip(
-      avatar: CircleAvatar(radius: 8, backgroundColor: color),
+      avatar: CircleAvatar(
+        radius: 10,
+        backgroundColor: color,
+        child: icon == null ? null : Icon(icon, size: 12, color: Colors.white),
+      ),
       label: Text(label),
     );
   }

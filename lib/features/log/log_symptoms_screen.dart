@@ -22,7 +22,7 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
   final TextEditingController _newSymptomController = TextEditingController();
 
   static const _initialSymptoms = ['cramps', 'headache', 'bloating', 'acne'];
-  Set<String> _allSymptoms = _initialSymptoms.toSet();
+  final Set<String> _allSymptoms = _initialSymptoms.toSet();
 
   @override
   void dispose() {

@@ -44,7 +44,7 @@ class CyclePredictor {
     final nextPeriod = last.add(Duration(days: average));
     final ovulation = nextPeriod.subtract(const Duration(days: 14));
     final fertileStart = ovulation.subtract(const Duration(days: 5));
-    final fertileEnd = ovulation.add(const Duration(days: 1));
+    final fertileEnd = ovulation;
 
     final regularity = _regularityScore(gaps);
 
