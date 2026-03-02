@@ -28,10 +28,21 @@ class SymptomEntry {
   }
 
   factory SymptomEntry.fromMap(Map<dynamic, dynamic> map) {
+    final rawSymptoms = map['symptoms'];
+    final symptoms = switch (rawSymptoms) {
+      List<dynamic>() => rawSymptoms.map((e) => e.toString()).toList(),
+      String() => rawSymptoms
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList(),
+      _ => <String>[],
+    };
+
     return SymptomEntry(
       date: DateTime.parse(map['date'] as String),
       mood: MoodType.values.firstWhere((e) => e.name == map['mood']),
-      symptoms: List<String>.from(map['symptoms'] as List<dynamic>),
+      symptoms: symptoms,
       flow: FlowIntensity.values.firstWhere((e) => e.name == map['flow']),
       notes: (map['notes'] as String?) ?? '',
     );

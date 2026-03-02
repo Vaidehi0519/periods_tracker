@@ -9,12 +9,17 @@ class SymptomRepository {
   final Box<dynamic> _box;
 
   Map<String, SymptomEntry> getEntries() {
-    return _box.toMap().map(
-          (key, value) => MapEntry(
-            key as String,
-            SymptomEntry.fromMap(Map<dynamic, dynamic>.from(value)),
-          ),
-        );
+    final result = <String, SymptomEntry>{};
+    for (final item in _box.toMap().entries) {
+      try {
+        final key = item.key.toString();
+        final value = Map<dynamic, dynamic>.from(item.value as Map);
+        result[key] = SymptomEntry.fromMap(value);
+      } catch (_) {
+        // Skip malformed legacy data instead of breaking Insights loading.
+      }
+    }
+    return result;
   }
 
   Future<void> upsertEntry(SymptomEntry entry) async {

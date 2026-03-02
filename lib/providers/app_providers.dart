@@ -81,6 +81,12 @@ final symptomsProvider =
   (ref) => SymptomController(ref.watch(symptomRepositoryProvider)),
 );
 
+final symptomEntriesProvider = Provider<List<SymptomEntry>>((ref) {
+  final entries = ref.watch(symptomsProvider).values.toList()
+    ..sort((a, b) => b.date.compareTo(a.date));
+  return entries;
+});
+
 class SettingsController extends StateNotifier<AppSettings> {
   SettingsController(this._repository, this._notifications)
       : super(AppSettings.defaults()) {
@@ -130,7 +136,7 @@ final periodDayKeysProvider = Provider<Set<String>>((ref) {
 });
 
 final symptomCountsProvider = Provider<Map<String, int>>((ref) {
-  final entries = ref.watch(symptomsProvider).values;
+  final entries = ref.watch(symptomEntriesProvider);
   final counts = <String, int>{};
   for (final entry in entries) {
     for (final symptom in entry.symptoms) {

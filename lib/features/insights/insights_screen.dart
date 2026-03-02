@@ -11,6 +11,7 @@ class InsightsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cycles = ref.watch(cyclesProvider);
     final prediction = ref.watch(predictionProvider);
+    final symptomEntries = ref.watch(symptomEntriesProvider);
     final symptomCounts = ref.watch(symptomCountsProvider);
 
     return AppGradientBackground(
@@ -65,8 +66,14 @@ class InsightsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           Text('Symptom Trends', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          if (symptomCounts.isEmpty)
+          if (symptomEntries.isEmpty)
             const AppSectionCard(child: Text('No symptom logs yet.'))
+          else if (symptomCounts.isEmpty)
+            AppSectionCard(
+              child: Text(
+                'Logs exist (${symptomEntries.length}) but no symptom tags were selected.',
+              ),
+            )
           else
             ...(() {
               final sorted = symptomCounts.entries.toList()
