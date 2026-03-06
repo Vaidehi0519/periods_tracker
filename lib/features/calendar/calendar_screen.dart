@@ -23,6 +23,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final fertileDays = ref.watch(fertileDayKeysProvider);
     final ovulationDay = ref.watch(ovulationDayKeyProvider);
     final prediction = ref.watch(predictionProvider);
+    final predictedPeriodDay = prediction.nextPeriodDate == null
+        ? null
+        : dateKey(
+            DateTime(
+              prediction.nextPeriodDate!.year,
+              prediction.nextPeriodDate!.month,
+              prediction.nextPeriodDate!.day,
+            ),
+          );
 
     return AppGradientBackground(
       child: Column(
@@ -67,13 +76,22 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 });
               },
               calendarBuilders: CalendarBuilders(
-                defaultBuilder: (context, day, _) {
+                prioritizedBuilder: (context, day, focusedDay) {
                   final key = dateKey(day);
                   if (periodDays.contains(key)) {
                     return _statusDay(
                       context,
                       day,
                       bgColor: const Color(0xFFE53935),
+                      showOvulationIcon: false,
+                    );
+                  }
+                  if (predictedPeriodDay == key) {
+                    return _statusDay(
+                      context,
+                      day,
+                      bgColor: const Color(0xFFFFCDD2),
+                      textColor: const Color(0xFFB71C1C),
                       showOvulationIcon: false,
                     );
                   }
@@ -91,38 +109,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       day,
                       bgColor: const Color(0xFFA5D6A7),
                       textColor: const Color(0xFF1B5E20),
-                      showOvulationIcon: false,
-                    );
-                  }
-                  return null;
-                },
-                selectedBuilder: (context, day, focusedDay) {
-                  final key = dateKey(day);
-                  if (periodDays.contains(key)) {
-                    return _statusDay(
-                      context,
-                      day,
-                      bgColor: const Color(0xFFE53935),
-                      borderColor: Theme.of(context).colorScheme.onSurface,
-                      showOvulationIcon: false,
-                    );
-                  }
-                  if (ovulationDay == key) {
-                    return _statusDay(
-                      context,
-                      day,
-                      bgColor: const Color(0xFF1B5E20),
-                      borderColor: Theme.of(context).colorScheme.onSurface,
-                      showOvulationIcon: true,
-                    );
-                  }
-                  if (fertileDays.contains(key)) {
-                    return _statusDay(
-                      context,
-                      day,
-                      bgColor: const Color(0xFFA5D6A7),
-                      textColor: const Color(0xFF1B5E20),
-                      borderColor: Theme.of(context).colorScheme.onSurface,
                       showOvulationIcon: false,
                     );
                   }
@@ -138,6 +124,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               runSpacing: 10,
               children: [
                 _LegendChip(label: 'Period', color: Color(0xFFE53935)),
+                _LegendChip(label: 'Predicted period', color: Color(0xFFFFCDD2)),
                 _LegendChip(label: 'Fertile window', color: Color(0xFFA5D6A7)),
                 _LegendChip(
                   label: 'Ovulation',

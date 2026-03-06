@@ -7,8 +7,8 @@ import '../core/services/lock_service.dart';
 import '../core/services/notification_service.dart';
 import '../core/utils/date_helpers.dart';
 import '../data/models/app_settings.dart';
-import '../data/models/cycle_record.dart';
-import '../data/models/symptom_entry.dart';
+import '../data/models/period_log.dart';
+import '../data/models/symptoms.dart';
 import '../data/repositories/cycle_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/symptom_repository.dart';
@@ -34,29 +34,33 @@ final lockServiceProvider = Provider<LockService>((ref) {
   return LockService(LocalAuthentication());
 });
 
-class CycleController extends StateNotifier<List<CycleRecord>> {
-  CycleController(this._repository) : super([]) {
+class CycleController extends StateNotifier<List<PeriodLog>> {
+  CycleController(this._repository) : super(const <PeriodLog>[]) {
     load();
   }
 
   final CycleRepository _repository;
 
   void load() {
-    state = _repository.getCycles();
+    state = _repository.getPeriodLogs();
   }
 
-  Future<void> addCycle(CycleRecord cycle) async {
-    await _repository.addCycle(cycle);
-    load();
+  Future<void> addCycle(PeriodLog cycle) async {
+    final normalized = cycle.normalized();
+    await _repository.addPeriodLog(normalized);
+
+    final next = [...state.where((item) => dateKey(item.startDate) != dateKey(normalized.startDate)), normalized]
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
+    state = next;
   }
 }
 
-final cyclesProvider = StateNotifierProvider<CycleController, List<CycleRecord>>(
+final cyclesProvider = StateNotifierProvider<CycleController, List<PeriodLog>>(
   (ref) => CycleController(ref.watch(cycleRepositoryProvider)),
 );
 
-class SymptomController extends StateNotifier<Map<String, SymptomEntry>> {
-  SymptomController(this._repository) : super({}) {
+class SymptomController extends StateNotifier<Map<String, Symptoms>> {
+  SymptomController(this._repository) : super(const <String, Symptoms>{}) {
     load();
   }
 
@@ -66,24 +70,23 @@ class SymptomController extends StateNotifier<Map<String, SymptomEntry>> {
     state = _repository.getEntries();
   }
 
-  SymptomEntry? getByDate(DateTime date) {
-    return state[dateKey(date)];
+  Symptoms? getByDate(DateTime date) {
+    return state[dateKey(normalizeDate(date))];
   }
 
-  Future<void> upsert(SymptomEntry entry) async {
-    await _repository.upsertEntry(entry);
-    load();
+  Future<void> upsert(Symptoms entry) async {
+    final normalized = entry.normalized();
+    await _repository.upsertEntry(normalized);
+    state = {...state, dateKey(normalized.date): normalized};
   }
 }
 
-final symptomsProvider =
-    StateNotifierProvider<SymptomController, Map<String, SymptomEntry>>(
+final symptomsProvider = StateNotifierProvider<SymptomController, Map<String, Symptoms>>(
   (ref) => SymptomController(ref.watch(symptomRepositoryProvider)),
 );
 
 class SettingsController extends StateNotifier<AppSettings> {
-  SettingsController(this._repository, this._notifications)
-      : super(AppSettings.defaults()) {
+  SettingsController(this._repository, this._notifications) : super(AppSettings.defaults()) {
     load();
   }
 
@@ -109,22 +112,48 @@ final settingsProvider = StateNotifierProvider<SettingsController, AppSettings>(
   ),
 );
 
+final analyticsProvider = Provider<CycleAnalytics>((ref) {
+  final periods = ref.watch(cyclesProvider);
+  final symptoms = ref.watch(symptomsProvider).values.toList(growable: false);
+  return CyclePredictor.buildAnalytics(periodLogs: periods, symptomLogs: symptoms);
+});
+
 final predictionProvider = Provider<CyclePrediction>((ref) {
-  final cycles = ref.watch(cyclesProvider);
-  return CyclePredictor.fromCycles(cycles);
+  return ref.watch(analyticsProvider).prediction;
+});
+
+final cycleLengthsProvider = Provider<List<int>>((ref) {
+  return ref.watch(predictionProvider).cycleLengths;
 });
 
 final periodDayKeysProvider = Provider<Set<String>>((ref) {
-  final cycles = ref.watch(cyclesProvider);
+  final periods = ref.watch(cyclesProvider);
   final keys = <String>{};
 
-  for (final cycle in cycles) {
-    var day = normalizeDate(cycle.startDate);
-    final end = normalizeDate(cycle.endDate);
+  for (final period in periods) {
+    var day = normalizeDate(period.startDate);
+    final end = normalizeDate(period.endDate);
     while (!day.isAfter(end)) {
       keys.add(dateKey(day));
       day = day.add(const Duration(days: 1));
     }
+  }
+  return keys;
+});
+
+final predictedPeriodDayKeysProvider = Provider<Set<String>>((ref) {
+  final prediction = ref.watch(predictionProvider);
+  final start = prediction.nextPeriodStart;
+  final end = prediction.nextPeriodEnd;
+  if (start == null || end == null) {
+    return const <String>{};
+  }
+
+  final keys = <String>{};
+  var day = normalizeDate(start);
+  while (!day.isAfter(normalizeDate(end))) {
+    keys.add(dateKey(day));
+    day = day.add(const Duration(days: 1));
   }
   return keys;
 });
@@ -142,7 +171,7 @@ final fertileDayKeysProvider = Provider<Set<String>>((ref) {
   final start = prediction.fertileStart;
   final end = prediction.fertileEnd;
   if (start == null || end == null) {
-    return <String>{};
+    return const <String>{};
   }
 
   final keys = <String>{};
@@ -156,14 +185,7 @@ final fertileDayKeysProvider = Provider<Set<String>>((ref) {
 });
 
 final symptomCountsProvider = Provider<Map<String, int>>((ref) {
-  final entries = ref.watch(symptomsProvider).values;
-  final counts = <String, int>{};
-  for (final entry in entries) {
-    for (final symptom in entry.symptoms) {
-      counts.update(symptom, (value) => value + 1, ifAbsent: () => 1);
-    }
-  }
-  return counts;
+  return ref.watch(analyticsProvider).symptomCounts;
 });
 
 class ReminderPayload {
@@ -186,7 +208,7 @@ final reminderPayloadProvider = Provider<ReminderPayload>((ref) {
   return ReminderPayload(
     periodEnabled: settings.periodReminders,
     ovulationEnabled: settings.ovulationReminders,
-    nextPeriodDate: prediction.nextPeriodDate,
+    nextPeriodDate: prediction.nextPeriodStart,
     ovulationDate: prediction.ovulationDate,
   );
 });

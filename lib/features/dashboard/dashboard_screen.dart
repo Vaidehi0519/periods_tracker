@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/ui/app_shell.dart';
 import '../../core/utils/date_helpers.dart';
-import '../../data/models/cycle_record.dart';
+import '../../data/models/period_log.dart';
 import '../../providers/app_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -25,7 +25,7 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     await ref.read(cyclesProvider.notifier).addCycle(
-          CycleRecord(startDate: selected.start, endDate: selected.end),
+          PeriodLog(startDate: selected.start, endDate: selected.end),
         );
   }
 
@@ -53,9 +53,9 @@ class DashboardScreen extends ConsumerWidget {
               Expanded(
                 child: StatTile(
                   label: 'Next Period',
-                  value: prediction.nextPeriodDate == null
+                  value: prediction.nextPeriodStart == null
                       ? '--'
-                      : formatPretty(prediction.nextPeriodDate!),
+                      : formatPretty(prediction.nextPeriodStart!),
                   icon: Icons.favorite_border,
                   color: const Color(0xFFE7749B),
                 ),
@@ -74,14 +74,29 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 10),
-          StatTile(
-            label: 'Average Cycle',
-            value: '${prediction.averageCycleLength} days',
-            icon: Icons.timelapse,
-            color: const Color(0xFF7B8AE2),
+          Row(
+            children: [
+              Expanded(
+                child: StatTile(
+                  label: 'Average Cycle',
+                  value: '${prediction.averageCycleLength} days',
+                  icon: Icons.timelapse,
+                  color: const Color(0xFF7B8AE2),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: StatTile(
+                  label: 'Period Duration',
+                  value: '${prediction.averagePeriodDuration} days',
+                  icon: Icons.hourglass_bottom,
+                  color: const Color(0xFF8E6FCB),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 18),
-          Text('Recent Cycles', style: Theme.of(context).textTheme.titleMedium),
+          Text('Recent Period Logs', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           if (cycles.isEmpty)
             const AppSectionCard(child: Text('No cycle entries yet.'))
@@ -103,7 +118,7 @@ class DashboardScreen extends ConsumerWidget {
                                   '${formatPretty(cycle.startDate)} - ${formatPretty(cycle.endDate)}',
                                   style: Theme.of(context).textTheme.titleSmall,
                                 ),
-                                Text('${cycle.periodLength} day period'),
+                                Text('${cycle.periodDuration} day period'),
                               ],
                             ),
                           ),

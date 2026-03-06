@@ -10,6 +10,7 @@ class InsightsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cycles = ref.watch(cyclesProvider);
+    final cycleLengths = ref.watch(cycleLengthsProvider);
     final prediction = ref.watch(predictionProvider);
     final symptomCounts = ref.watch(symptomCountsProvider);
 
@@ -59,6 +60,38 @@ class InsightsScreen extends ConsumerWidget {
                   ),
                 ),
                 Text('${(prediction.regularityScore * 100).round()}%'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          AppSectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Fertility Prediction', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 6),
+                Text(
+                  prediction.ovulationDate == null
+                      ? 'Log more periods to improve predictions.'
+                      : 'Ovulation: ${prediction.ovulationDate!.month}/${prediction.ovulationDate!.day}\n'
+                          'Fertile: ${prediction.fertileStart!.month}/${prediction.fertileStart!.day}'
+                          ' - ${prediction.fertileEnd!.month}/${prediction.fertileEnd!.day}',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          AppSectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Cycle Length History', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 6),
+                Text(
+                  cycleLengths.isEmpty
+                      ? 'Need at least 2 logged periods.'
+                      : cycleLengths.map((d) => '$d d').join(' • '),
+                ),
               ],
             ),
           ),

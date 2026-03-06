@@ -1,31 +1,32 @@
 import 'package:hive/hive.dart';
 
 import '../../core/utils/date_helpers.dart';
-import '../models/symptom_entry.dart';
+import '../models/symptoms.dart';
 
 class SymptomRepository {
   SymptomRepository(this._box);
 
   final Box<dynamic> _box;
 
-  Map<String, SymptomEntry> getEntries() {
+  Map<String, Symptoms> getEntries() {
     return _box.toMap().map(
-          (key, value) => MapEntry(
-            key as String,
-            SymptomEntry.fromMap(Map<dynamic, dynamic>.from(value)),
-          ),
-        );
+      (key, value) => MapEntry(
+        key as String,
+        Symptoms.fromMap(Map<dynamic, dynamic>.from(value as Map)),
+      ),
+    );
   }
 
-  Future<void> upsertEntry(SymptomEntry entry) async {
-    await _box.put(dateKey(entry.date), entry.toMap());
+  Future<void> upsertEntry(Symptoms entry) async {
+    final normalized = entry.normalized();
+    await _box.put(dateKey(normalized.date), normalized.toMap());
   }
 
-  SymptomEntry? getByDate(DateTime date) {
-    final item = _box.get(dateKey(date));
+  Symptoms? getByDate(DateTime date) {
+    final item = _box.get(dateKey(normalizeDate(date)));
     if (item == null) {
       return null;
     }
-    return SymptomEntry.fromMap(Map<dynamic, dynamic>.from(item));
+    return Symptoms.fromMap(Map<dynamic, dynamic>.from(item as Map));
   }
 }
