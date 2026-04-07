@@ -29,6 +29,8 @@ class CyclePrediction {
   final int trendDelta;
 
   bool get hasPrediction => nextPeriodStart != null;
+
+  DateTime? get nextPeriodDate => nextPeriodStart;
 }
 
 class CycleAnalytics {
@@ -91,8 +93,13 @@ class CyclePredictor {
         : (periodDurations.reduce((a, b) => a + b) / periodDurations.length).round();
 
     final lastPeriodStart = sorted.last.startDate;
-    final nextPeriodStart = normalizeDate(lastPeriodStart.add(Duration(days: weightedCycleLength)));
-    final nextPeriodEnd = nextPeriodStart.add(Duration(days: averagePeriodDuration - 1));
+    final today = normalizeDate(DateTime.now());
+    var nextPeriodStart = normalizeDate(lastPeriodStart.add(Duration(days: weightedCycleLength)));
+    while (!nextPeriodStart.isAfter(today)) {
+      nextPeriodStart = normalizeDate(nextPeriodStart.add(Duration(days: weightedCycleLength)));
+    }
+
+    final nextPeriodEnd = normalizeDate(nextPeriodStart.add(Duration(days: averagePeriodDuration - 1)));
     final ovulation = nextPeriodStart.subtract(const Duration(days: _lutealPhaseLength));
     final fertileStart = ovulation.subtract(const Duration(days: 5));
 
@@ -125,7 +132,7 @@ class CyclePredictor {
     for (var i = 0; i < sortedPeriods.length; i++) {
       final period = sortedPeriods[i];
       final nextStart = i < sortedPeriods.length - 1 ? sortedPeriods[i + 1].startDate : null;
-      final cycleLength = nextStart == null ? null : nextStart.difference(period.startDate).inDays;
+      final cycleLength = nextStart?.difference(period.startDate).inDays;
       final cycleEnd = nextStart == null ? period.endDate : nextStart.subtract(const Duration(days: 1));
       final entries = sortedSymptoms
           .where((symptom) => !symptom.date.isBefore(period.startDate) && !symptom.date.isAfter(cycleEnd))
@@ -180,7 +187,7 @@ class CyclePredictor {
 extension _TakeLast<E> on List<E> {
   List<E> takeLast(int count) {
     if (isEmpty) {
-      return const <E>[];
+      return <E>[];
     }
     if (length <= count) {
       return [...this];

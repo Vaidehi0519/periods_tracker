@@ -31,7 +31,7 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
     super.dispose();
   }
 
-  void _hydrateFromEntry(SymptomEntry? entry) {
+  void _hydrateFromEntry(Symptoms? entry) {
     _symptoms.clear();
     _noteController.clear();
     if (entry == null) {
@@ -41,7 +41,7 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
     }
     _mood = entry.mood;
     _flow = entry.flow;
-    _symptoms.addAll(entry.symptoms);
+    _symptoms.addAll(entry.items);
     _noteController.text = entry.notes;
   }
 

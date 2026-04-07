@@ -20,18 +20,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final periodDays = ref.watch(periodDayKeysProvider);
+    final predictedPeriodDays = ref.watch(predictedPeriodDayKeysProvider);
     final fertileDays = ref.watch(fertileDayKeysProvider);
     final ovulationDay = ref.watch(ovulationDayKeyProvider);
     final prediction = ref.watch(predictionProvider);
-    final predictedPeriodDay = prediction.nextPeriodDate == null
-        ? null
-        : dateKey(
-            DateTime(
-              prediction.nextPeriodDate!.year,
-              prediction.nextPeriodDate!.month,
-              prediction.nextPeriodDate!.day,
-            ),
-          );
 
     return AppGradientBackground(
       child: Column(
@@ -86,7 +78,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       showOvulationIcon: false,
                     );
                   }
-                  if (predictedPeriodDay == key) {
+                  if (predictedPeriodDays.contains(key)) {
                     return _statusDay(
                       context,
                       day,
@@ -147,7 +139,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 Text(
                   prediction.ovulationDate == null
                       ? 'Log at least one period to generate predictions.'
-                      : 'Ovulation: ${formatPretty(prediction.ovulationDate!)}\n'
+                      : 'Next period: ${formatPretty(prediction.nextPeriodStart!)} - ${formatPretty(prediction.nextPeriodEnd!)}\n'
+                          'Ovulation: ${formatPretty(prediction.ovulationDate!)}\n'
                           'Fertile window: ${formatPretty(prediction.fertileStart!)} - '
                           '${formatPretty(prediction.fertileEnd!)}',
                 ),
