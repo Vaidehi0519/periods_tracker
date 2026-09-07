@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -11,8 +12,24 @@ Future<void> main() async {
   await Hive.openBox<dynamic>('cycles');
   await Hive.openBox<dynamic>('symptoms');
   await Hive.openBox<dynamic>('settings');
+  await Hive.openBox<dynamic>('auth');
 
-  final container = ProviderContainer();
+  FirebaseAppStatus firebaseStatus;
+  try {
+    await Firebase.initializeApp();
+    firebaseStatus = const FirebaseAppStatus(isReady: true);
+  } catch (error) {
+    firebaseStatus = FirebaseAppStatus(
+      isReady: false,
+      errorMessage: error.toString(),
+    );
+  }
+
+  final container = ProviderContainer(
+    overrides: [
+      firebaseAppStatusProvider.overrideWithValue(firebaseStatus),
+    ],
+  );
   await container.read(notificationServiceProvider).init();
 
   runApp(

@@ -10,6 +10,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
+    final auth = ref.watch(authProvider);
 
     return AppGradientBackground(
       child: Column(
@@ -21,6 +22,82 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
           _SettingGroup(
+            title: 'Account',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  auth.firebaseUser == null
+                      ? 'No account is signed in.'
+                      : 'Signed in as ${((auth.firebaseUser!.displayName ?? '').isEmpty ? auth.firebaseUser!.email : auth.firebaseUser!.displayName)}\n${auth.firebaseUser!.email ?? ''}',
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    onPressed: auth.firebaseUser == null
+                        ? null
+                        : () async {
+                            await ref.read(authProvider.notifier).logout();
+                          },
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Logout'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: auth.firebaseUser == null
+                        ? null
+                        : () async {
+                            final nextName = await _askDisplayName(
+                              context,
+                              initialValue: auth.firebaseUser?.displayName ?? '',
+                            );
+                            if (nextName == null) {
+                              return;
+                            }
+                            final ok = await ref.read(authProvider.notifier).updateDisplayName(nextName);
+                            if (context.mounted && ok) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Profile updated.')),
+                              );
+                            }
+                          },
+                    icon: const Icon(Icons.person_outline),
+                    label: const Text('Edit profile name'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: auth.firebaseUser == null
+                        ? null
+                        : () async {
+                            final reason = await _askDeletionReason(context);
+                            if (reason == null) {
+                              return;
+                            }
+                            final ok = await ref.read(authProvider.notifier).requestAccountDeletion(reason: reason);
+                            if (context.mounted && ok) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Deletion request submitted. Complete cleanup with your backend process.'),
+                                ),
+                              );
+                            }
+                          },
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Request account deletion'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          _SettingGroup(
             title: 'Appearance',
             child: SwitchListTile(
               contentPadding: EdgeInsets.zero,
@@ -29,6 +106,31 @@ class SettingsScreen extends ConsumerWidget {
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).update(settings.copyWith(darkMode: value));
               },
+            ),
+          ),
+          const SizedBox(height: 10),
+          _SettingGroup(
+            title: 'Cycle Baseline',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Cycle length: ${settings.baselineCycleLength} days\nPeriod duration: ${settings.baselinePeriodDuration} days',
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      ref.read(settingsProvider.notifier).update(
+                            settings.copyWith(onboardingCompleted: false),
+                          );
+                    },
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text('Revisit onboarding'),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 10),
@@ -124,7 +226,7 @@ class SettingsScreen extends ConsumerWidget {
                 Icon(Icons.verified_user_outlined),
                 SizedBox(width: 10),
                 Expanded(
-                  child: Text('All period and symptom data stays locally on your device.'),
+                  child: Text('Your account uses Firebase Auth and your cycle data syncs with Firestore in real time.'),
                 ),
               ],
             ),
@@ -173,6 +275,78 @@ class SettingsScreen extends ConsumerWidget {
     );
     controller.dispose();
     return pin;
+  }
+
+  Future<String?> _askDisplayName(BuildContext context, {required String initialValue}) async {
+    final controller = TextEditingController(text: initialValue);
+    final formKey = GlobalKey<FormState>();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Update profile name'),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: controller,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                labelText: 'Display name',
+              ),
+              validator: (value) {
+                if ((value ?? '').trim().length < 2) {
+                  return 'Enter at least 2 characters';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: () {
+                if (formKey.currentState?.validate() ?? false) {
+                  Navigator.pop(context, controller.text.trim());
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    return name;
+  }
+
+  Future<String?> _askDeletionReason(BuildContext context) async {
+    final controller = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Request account deletion'),
+          content: TextField(
+            controller: controller,
+            minLines: 3,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              labelText: 'Reason',
+              hintText: 'Optional note for your backend support flow',
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    return reason;
   }
 }
 

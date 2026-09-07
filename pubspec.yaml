@@ -18,6 +18,9 @@ dependencies:
   local_auth: ^2.3.0
   flutter_local_notifications: ^19.4.0
   google_fonts: ^8.0.2
+  firebase_core: ^4.6.0
+  firebase_auth: ^6.3.0
+  cloud_firestore: ^6.2.0
 
 dev_dependencies:
   flutter_test:

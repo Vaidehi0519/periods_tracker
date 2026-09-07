@@ -50,14 +50,20 @@ class CyclePredictor {
   static const int _defaultPeriodDuration = 5;
   static const int _lutealPhaseLength = 14;
 
-  static CyclePrediction fromPeriodLogs(List<PeriodLog> logs) {
+  static CyclePrediction fromPeriodLogs(
+    List<PeriodLog> logs, {
+    int? fallbackCycleLength,
+    int? fallbackPeriodDuration,
+  }) {
+    final safeCycleLength = _sanitizeCycleLength(fallbackCycleLength);
+    final safePeriodDuration = _sanitizePeriodDuration(fallbackPeriodDuration);
     final normalized = logs.map((log) => log.normalized()).toList()
       ..sort((a, b) => a.startDate.compareTo(b.startDate));
 
     if (normalized.isEmpty) {
-      return const CyclePrediction(
-        averageCycleLength: _defaultCycleLength,
-        averagePeriodDuration: _defaultPeriodDuration,
+      return CyclePrediction(
+        averageCycleLength: safeCycleLength,
+        averagePeriodDuration: safePeriodDuration,
         cycleLengths: <int>[],
         nextPeriodStart: null,
         nextPeriodEnd: null,
@@ -84,12 +90,12 @@ class CyclePredictor {
     }
 
     final weightedCycleLength = cycleLengths.isEmpty
-        ? _defaultCycleLength
+        ? safeCycleLength
         : _weightedAverage(cycleLengths.takeLast(6));
 
     final periodDurations = sorted.map((log) => log.periodDuration).where((days) => days >= 1 && days <= 14).toList();
     final averagePeriodDuration = periodDurations.isEmpty
-        ? _defaultPeriodDuration
+        ? safePeriodDuration
         : (periodDurations.reduce((a, b) => a + b) / periodDurations.length).round();
 
     final lastPeriodStart = sorted.last.startDate;
@@ -120,8 +126,14 @@ class CyclePredictor {
   static CycleAnalytics buildAnalytics({
     required List<PeriodLog> periodLogs,
     required List<Symptoms> symptomLogs,
+    int? fallbackCycleLength,
+    int? fallbackPeriodDuration,
   }) {
-    final prediction = fromPeriodLogs(periodLogs);
+    final prediction = fromPeriodLogs(
+      periodLogs,
+      fallbackCycleLength: fallbackCycleLength,
+      fallbackPeriodDuration: fallbackPeriodDuration,
+    );
 
     final sortedPeriods = periodLogs.map((period) => period.normalized()).toList()
       ..sort((a, b) => a.startDate.compareTo(b.startDate));
@@ -181,6 +193,16 @@ class CyclePredictor {
     }
     final slice = cycleLengths.takeLast(4);
     return slice.last - slice.first;
+  }
+
+  static int _sanitizeCycleLength(int? value) {
+    final candidate = value ?? _defaultCycleLength;
+    return candidate.clamp(21, 45);
+  }
+
+  static int _sanitizePeriodDuration(int? value) {
+    final candidate = value ?? _defaultPeriodDuration;
+    return candidate.clamp(2, 10);
   }
 }
 
