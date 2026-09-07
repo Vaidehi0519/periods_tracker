@@ -35,10 +35,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final authState = ref.watch(authProvider);
 
     ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage!)),
-        );
+      if (next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
         ref.read(authProvider.notifier).clearError();
       }
     });
@@ -64,9 +65,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         const AnimatedEntrance(
                           child: HighlightCard(
                             title: 'Customer login',
-                            subtitle: 'Authenticate with Firebase and keep your health data synced per account in real time.',
+                            subtitle:
+                                'Authenticate with Firebase and keep your health data synced per account in real time.',
                             primaryValue: 'Realtime + secure',
-                            secondaryValue: 'Each customer account gets isolated cloud data and live updates.',
+                            secondaryValue:
+                                'Each customer account gets isolated cloud data and live updates.',
                             icon: Icons.favorite_rounded,
                             gradient: [
                               Color(0xFFDA6D8F),
@@ -82,7 +85,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Verify your email', style: Theme.of(context).textTheme.headlineSmall),
+                                  Text(
+                                    'Verify your email',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineSmall,
+                                  ),
                                   const SizedBox(height: 6),
                                   Text(
                                     'Your account is signed in, but email verification is still pending. Customers should verify their email before using the app.',
@@ -95,19 +103,42 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                           onPressed: _isSendingVerification
                                               ? null
                                               : () async {
-                                                  final messenger = ScaffoldMessenger.of(context);
-                                                  setState(() => _isSendingVerification = true);
-                                                  final ok = await ref.read(authProvider.notifier).sendEmailVerification();
+                                                  final messenger =
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      );
+                                                  setState(
+                                                    () =>
+                                                        _isSendingVerification =
+                                                            true,
+                                                  );
+                                                  final ok = await ref
+                                                      .read(
+                                                        authProvider.notifier,
+                                                      )
+                                                      .sendEmailVerification();
                                                   if (mounted) {
-                                                    setState(() => _isSendingVerification = false);
+                                                    setState(
+                                                      () =>
+                                                          _isSendingVerification =
+                                                              false,
+                                                    );
                                                     if (ok) {
                                                       messenger.showSnackBar(
-                                                        const SnackBar(content: Text('Verification email sent.')),
+                                                        const SnackBar(
+                                                          content: Text(
+                                                            'Verification email sent.',
+                                                          ),
+                                                        ),
                                                       );
                                                     }
                                                   }
                                                 },
-                                          child: Text(_isSendingVerification ? 'Sending...' : 'Resend verification'),
+                                          child: Text(
+                                            _isSendingVerification
+                                                ? 'Sending...'
+                                                : 'Resend verification',
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 10),
@@ -116,13 +147,29 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                           onPressed: _isRefreshingVerification
                                               ? null
                                               : () async {
-                                                  setState(() => _isRefreshingVerification = true);
-                                                  await ref.read(authProvider.notifier).reloadUser();
+                                                  setState(
+                                                    () =>
+                                                        _isRefreshingVerification =
+                                                            true,
+                                                  );
+                                                  await ref
+                                                      .read(
+                                                        authProvider.notifier,
+                                                      )
+                                                      .reloadUser();
                                                   if (mounted) {
-                                                    setState(() => _isRefreshingVerification = false);
+                                                    setState(
+                                                      () =>
+                                                          _isRefreshingVerification =
+                                                              false,
+                                                    );
                                                   }
                                                 },
-                                          child: Text(_isRefreshingVerification ? 'Checking...' : 'I verified'),
+                                          child: Text(
+                                            _isRefreshingVerification
+                                                ? 'Checking...'
+                                                : 'I verified',
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -132,7 +179,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                     width: double.infinity,
                                     child: OutlinedButton.icon(
                                       onPressed: () async {
-                                        await ref.read(authProvider.notifier).logout();
+                                        await ref
+                                            .read(authProvider.notifier)
+                                            .logout();
                                       },
                                       icon: const Icon(Icons.logout),
                                       label: const Text('Use another account'),
@@ -151,8 +200,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      _isLoginMode ? 'Sign in' : 'Create account',
-                                      style: Theme.of(context).textTheme.headlineSmall,
+                                      _isLoginMode
+                                          ? 'Sign in'
+                                          : 'Create account',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.headlineSmall,
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
@@ -173,7 +226,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                           if (_isLoginMode) {
                                             return null;
                                           }
-                                          if (value == null || value.trim().length < 2) {
+                                          if (value == null ||
+                                              value.trim().length < 2) {
                                             return 'Enter your name';
                                           }
                                           return null;
@@ -191,7 +245,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       ),
                                       validator: (value) {
                                         final text = value?.trim() ?? '';
-                                        if (!text.contains('@') || !text.contains('.')) {
+                                        if (!text.contains('@') ||
+                                            !text.contains('.')) {
                                           return 'Enter a valid email';
                                         }
                                         return null;
@@ -216,13 +271,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                     SizedBox(
                                       width: double.infinity,
                                       child: FilledButton(
-                                        onPressed: _isSubmitting || authState.isLoading ? null : _submit,
+                                        onPressed:
+                                            _isSubmitting || authState.isLoading
+                                            ? null
+                                            : _submit,
                                         child: Text(
                                           _isSubmitting
                                               ? 'Please wait...'
                                               : _isLoginMode
-                                                  ? 'Login'
-                                                  : 'Create account',
+                                              ? 'Login'
+                                              : 'Create account',
                                         ),
                                       ),
                                     ),
@@ -231,8 +289,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: TextButton(
-                                          onPressed: _isResettingPassword ? null : _resetPassword,
-                                          child: Text(_isResettingPassword ? 'Sending reset...' : 'Forgot password?'),
+                                          onPressed: _isResettingPassword
+                                              ? null
+                                              : _resetPassword,
+                                          child: Text(
+                                            _isResettingPassword
+                                                ? 'Sending reset...'
+                                                : 'Forgot password?',
+                                          ),
                                         ),
                                       ),
                                     Center(
@@ -297,7 +361,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         FocusScope.of(context).unfocus();
         if (!_isLoginMode) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account created. Check your email for verification.')),
+            const SnackBar(
+              content: Text(
+                'Account created. Check your email for verification.',
+              ),
+            ),
           );
         }
       }
@@ -308,13 +376,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final email = _emailController.text.trim();
     if (!email.contains('@') || !email.contains('.')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter your email first to reset the password.')),
+        const SnackBar(
+          content: Text('Enter your email first to reset the password.'),
+        ),
       );
       return;
     }
 
     setState(() => _isResettingPassword = true);
-    final ok = await ref.read(authProvider.notifier).sendPasswordResetEmail(email);
+    final ok = await ref
+        .read(authProvider.notifier)
+        .sendPasswordResetEmail(email);
     if (mounted) {
       setState(() => _isResettingPassword = false);
       if (ok) {

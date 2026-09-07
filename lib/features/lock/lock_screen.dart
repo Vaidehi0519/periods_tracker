@@ -24,8 +24,8 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   }
 
   Future<void> _useBiometric() async {
-    final settings = ref.read(settingsProvider);
-    if (!settings.biometricEnabled) {
+    final lock = ref.read(lockPreferencesProvider).preferences;
+    if (!lock.biometricEnabled) {
       return;
     }
     final ok = await ref.read(lockServiceProvider).authenticateWithBiometrics();
@@ -34,10 +34,15 @@ class _LockScreenState extends ConsumerState<LockScreen> {
     }
   }
 
-  void _unlock() {
-    final settings = ref.read(settingsProvider);
-    if (_controller.text == settings.pinCode) {
+  Future<void> _unlock() async {
+    final ok = await ref
+        .read(lockPreferencesProvider.notifier)
+        .verifyPin(_controller.text);
+    if (ok && mounted) {
       widget.onUnlocked();
+      return;
+    }
+    if (!mounted) {
       return;
     }
     setState(() {
@@ -47,7 +52,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
+    final lock = ref.watch(lockPreferencesProvider).preferences;
 
     return Scaffold(
       body: Container(
@@ -68,7 +73,10 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   children: [
                     const Icon(Icons.lock_outline_rounded, size: 34),
                     const SizedBox(height: 10),
-                    Text('Private Access', style: Theme.of(context).textTheme.headlineSmall),
+                    Text(
+                      'Private Access',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                     const SizedBox(height: 4),
                     const Text('Enter your PIN to unlock your tracker'),
                     const SizedBox(height: 12),
@@ -77,14 +85,20 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                       maxLength: 6,
                       obscureText: true,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(errorText: _error, hintText: '6-digit PIN'),
+                      decoration: InputDecoration(
+                        errorText: _error,
+                        hintText: '6-digit PIN',
+                      ),
                     ),
                     const SizedBox(height: 4),
                     SizedBox(
                       width: double.infinity,
-                      child: FilledButton(onPressed: _unlock, child: const Text('Unlock')),
+                      child: FilledButton(
+                        onPressed: _unlock,
+                        child: const Text('Unlock'),
+                      ),
                     ),
-                    if (settings.biometricEnabled)
+                    if (lock.biometricEnabled)
                       TextButton.icon(
                         onPressed: _useBiometric,
                         icon: const Icon(Icons.fingerprint),

@@ -23,6 +23,7 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
 
   static const _initialSymptoms = ['cramps', 'headache', 'bloating', 'acne'];
   final Set<String> _allSymptoms = _initialSymptoms.toSet();
+  String? _hydratedDateKey;
 
   @override
   void dispose() {
@@ -31,9 +32,10 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
     super.dispose();
   }
 
-  void _hydrateFromEntry(Symptoms? entry) {
+  void _hydrateFromEntry(String key, Symptoms? entry) {
     _symptoms.clear();
     _noteController.clear();
+    _hydratedDateKey = key;
     if (entry == null) {
       _mood = MoodType.happy;
       _flow = FlowIntensity.medium;
@@ -41,6 +43,7 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
     }
     _mood = entry.mood;
     _flow = entry.flow;
+    _allSymptoms.addAll(entry.items);
     _symptoms.addAll(entry.items);
     _noteController.text = entry.notes;
   }
@@ -58,9 +61,10 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final entry = ref.watch(symptomsProvider)[dateKey(_selectedDate)];
-    if (_noteController.text.isEmpty && _symptoms.isEmpty) {
-      _hydrateFromEntry(entry);
+    final selectedKey = dateKey(_selectedDate);
+    final entry = ref.watch(symptomsProvider)[selectedKey];
+    if (_hydratedDateKey != selectedKey) {
+      _hydrateFromEntry(selectedKey, entry);
     }
 
     return AppGradientBackground(
@@ -90,7 +94,11 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
                   }
                   setState(() {
                     _selectedDate = picked;
-                    _hydrateFromEntry(ref.read(symptomsProvider)[dateKey(picked)]);
+                    final pickedKey = dateKey(picked);
+                    _hydrateFromEntry(
+                      pickedKey,
+                      ref.read(symptomsProvider)[pickedKey],
+                    );
                   });
                 },
                 icon: const Icon(Icons.calendar_month),
@@ -117,7 +125,10 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
                       .toList(),
                 ),
                 const SizedBox(height: 14),
-                Text('Symptoms', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Symptoms',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -148,7 +159,10 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Flow Intensity', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Flow Intensity',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 SegmentedButton<FlowIntensity>(
                   segments: FlowIntensity.values
@@ -184,7 +198,10 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Add Custom Symptom', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Add Custom Symptom',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -212,7 +229,9 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: () async {
-                await ref.read(symptomsProvider.notifier).upsert(
+                await ref
+                    .read(symptomsProvider.notifier)
+                    .upsert(
                       SymptomEntry(
                         date: _selectedDate,
                         mood: _mood,
@@ -222,9 +241,9 @@ class _LogSymptomsScreenState extends ConsumerState<LogSymptomsScreen> {
                       ),
                     );
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Log saved')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Log saved')));
                 }
               },
               icon: const Icon(Icons.check_rounded),

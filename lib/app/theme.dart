@@ -4,7 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   static ThemeData light() {
     const seed = Color(0xFFE07A9A);
-    final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light);
+    final scheme = ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: Brightness.light,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -15,10 +18,16 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: const Color(0xFFFFF7FB),
       textTheme: GoogleFonts.dmSansTextTheme().copyWith(
-        headlineSmall: GoogleFonts.dmSerifDisplay(fontSize: 31, fontWeight: FontWeight.w400),
+        headlineSmall: GoogleFonts.dmSerifDisplay(
+          fontSize: 31,
+          fontWeight: FontWeight.w400,
+        ),
         headlineMedium: GoogleFonts.dmSerifDisplay(fontWeight: FontWeight.w400),
       ),
-      appBarTheme: const AppBarTheme(centerTitle: false, backgroundColor: Colors.transparent),
+      appBarTheme: const AppBarTheme(
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+      ),
       cardTheme: CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
@@ -28,13 +37,17 @@ class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       ),
       chipTheme: ChipThemeData(
@@ -48,7 +61,10 @@ class AppTheme {
         height: 76,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return TextStyle(fontWeight: selected ? FontWeight.w700 : FontWeight.w500, fontSize: 12);
+          return TextStyle(
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 12,
+          );
         }),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -68,7 +84,10 @@ class AppTheme {
 
   static ThemeData dark() {
     const seed = Color(0xFFE5A0B6);
-    final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark);
+    final scheme = ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: Brightness.dark,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -78,18 +97,22 @@ class AppTheme {
         tertiary: const Color(0xFFF3B562),
       ),
       scaffoldBackgroundColor: const Color(0xFF151318),
-      textTheme: GoogleFonts.dmSansTextTheme(ThemeData.dark().textTheme).copyWith(
-        headlineSmall: GoogleFonts.dmSerifDisplay(
-          textStyle: ThemeData.dark().textTheme.headlineSmall,
-          fontSize: 31,
-          fontWeight: FontWeight.w400,
-        ),
-        headlineMedium: GoogleFonts.dmSerifDisplay(
-          textStyle: ThemeData.dark().textTheme.headlineMedium,
-          fontWeight: FontWeight.w400,
-        ),
+      textTheme: GoogleFonts.dmSansTextTheme(ThemeData.dark().textTheme)
+          .copyWith(
+            headlineSmall: GoogleFonts.dmSerifDisplay(
+              textStyle: ThemeData.dark().textTheme.headlineSmall,
+              fontSize: 31,
+              fontWeight: FontWeight.w400,
+            ),
+            headlineMedium: GoogleFonts.dmSerifDisplay(
+              textStyle: ThemeData.dark().textTheme.headlineMedium,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+      appBarTheme: const AppBarTheme(
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
       ),
-      appBarTheme: const AppBarTheme(centerTitle: false, backgroundColor: Colors.transparent),
       cardTheme: CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
@@ -99,13 +122,17 @@ class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       ),
       chipTheme: ChipThemeData(
@@ -119,7 +146,10 @@ class AppTheme {
         height: 76,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return TextStyle(fontWeight: selected ? FontWeight.w700 : FontWeight.w500, fontSize: 12);
+          return TextStyle(
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 12,
+          );
         }),
       ),
       inputDecorationTheme: InputDecorationTheme(

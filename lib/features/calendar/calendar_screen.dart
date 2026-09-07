@@ -60,11 +60,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
                 calendarStyle: CalendarStyle(
                   selectedDecoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   todayDecoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -124,8 +128,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 runSpacing: 10,
                 children: [
                   _LegendChip(label: 'Period', color: Color(0xFFE53935)),
-                  _LegendChip(label: 'Predicted period', color: Color(0xFFFFCDD2)),
-                  _LegendChip(label: 'Fertile window', color: Color(0xFFA5D6A7)),
+                  _LegendChip(
+                    label: 'Predicted period',
+                    color: Color(0xFFFFCDD2),
+                  ),
+                  _LegendChip(
+                    label: 'Fertile window',
+                    color: Color(0xFFA5D6A7),
+                  ),
                   _LegendChip(
                     label: 'Ovulation',
                     color: Color(0xFF1B5E20),
@@ -141,9 +151,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Selected Day', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    'Selected Day',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 8),
-                  Text(formatPretty(_selectedDay), style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    formatPretty(_selectedDay),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -188,8 +204,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     prediction.ovulationDate == null
                         ? 'Log at least one period to generate predictions.'
                         : 'Next period: ${formatPretty(prediction.nextPeriodStart!)} - ${formatPretty(prediction.nextPeriodEnd!)}\n'
-                            'Ovulation: ${formatPretty(prediction.ovulationDate!)}\n'
-                            'Fertile window: ${formatPretty(prediction.fertileStart!)} - ${formatPretty(prediction.fertileEnd!)}',
+                              'Ovulation: ${formatPretty(prediction.ovulationDate!)}\n'
+                              'Fertile window: ${formatPretty(prediction.fertileStart!)} - ${formatPretty(prediction.fertileEnd!)}',
                   ),
                 ],
               ),
@@ -251,7 +267,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
               ),
               child: ListView(
                 controller: controller,
@@ -268,7 +286,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  Text(formatPretty(day), style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    formatPretty(day),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 6),
                   Text(
                     _sheetSummary(
@@ -299,7 +320,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Logged symptoms', style: Theme.of(context).textTheme.titleSmall),
+                          Text(
+                            'Logged symptoms',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
                           const SizedBox(height: 10),
                           _QuickLogPreview(entry: entry),
                         ],
@@ -311,14 +335,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Cycle forecast', style: Theme.of(context).textTheme.titleSmall),
+                        Text(
+                          'Cycle forecast',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           prediction.ovulationDate == null
                               ? 'Add more data to improve forecasting.'
                               : 'Estimated ovulation: ${formatPretty(prediction.ovulationDate!)}\n'
-                                  'Estimated fertile window: ${formatPretty(prediction.fertileStart!)} - ${formatPretty(prediction.fertileEnd!)}\n'
-                                  'Next predicted period: ${formatPretty(prediction.nextPeriodStart!)} - ${formatPretty(prediction.nextPeriodEnd!)}',
+                                    'Estimated fertile window: ${formatPretty(prediction.fertileStart!)} - ${formatPretty(prediction.fertileEnd!)}\n'
+                                    'Next predicted period: ${formatPretty(prediction.nextPeriodStart!)} - ${formatPretty(prediction.nextPeriodEnd!)}',
                         ),
                       ],
                     ),
@@ -369,7 +396,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: borderColor == null ? null : Border.all(color: borderColor, width: 1.2),
+        border: borderColor == null
+            ? null
+            : Border.all(color: borderColor, width: 1.2),
       ),
       alignment: Alignment.center,
       child: Column(
@@ -379,16 +408,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             '${day.day}',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: textColor,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           if (showOvulationIcon)
-            const Icon(
-              Icons.auto_awesome,
-              size: 11,
-              color: Colors.white,
-            ),
+            const Icon(Icons.auto_awesome, size: 11, color: Colors.white),
         ],
       ),
     );
@@ -432,7 +457,9 @@ class _QuickLogPreview extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: entry.items.map((item) => Chip(label: Text(item))).toList(growable: false),
+            children: entry.items
+                .map((item) => Chip(label: Text(item)))
+                .toList(growable: false),
           ),
         ],
         if (entry.notes.isNotEmpty) ...[

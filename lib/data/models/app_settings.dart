@@ -7,9 +7,6 @@ class AppSettings {
     required this.onboardingCompleted,
     required this.baselineCycleLength,
     required this.baselinePeriodDuration,
-    required this.pinEnabled,
-    required this.pinCode,
-    required this.biometricEnabled,
   });
 
   final bool darkMode;
@@ -19,9 +16,6 @@ class AppSettings {
   final bool onboardingCompleted;
   final int baselineCycleLength;
   final int baselinePeriodDuration;
-  final bool pinEnabled;
-  final String pinCode;
-  final bool biometricEnabled;
 
   factory AppSettings.defaults() {
     return const AppSettings(
@@ -32,9 +26,6 @@ class AppSettings {
       onboardingCompleted: false,
       baselineCycleLength: 28,
       baselinePeriodDuration: 5,
-      pinEnabled: false,
-      pinCode: '',
-      biometricEnabled: false,
     );
   }
 
@@ -46,9 +37,6 @@ class AppSettings {
     bool? onboardingCompleted,
     int? baselineCycleLength,
     int? baselinePeriodDuration,
-    bool? pinEnabled,
-    String? pinCode,
-    bool? biometricEnabled,
   }) {
     return AppSettings(
       darkMode: darkMode ?? this.darkMode,
@@ -57,10 +45,8 @@ class AppSettings {
       dailyLogReminder: dailyLogReminder ?? this.dailyLogReminder,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       baselineCycleLength: baselineCycleLength ?? this.baselineCycleLength,
-      baselinePeriodDuration: baselinePeriodDuration ?? this.baselinePeriodDuration,
-      pinEnabled: pinEnabled ?? this.pinEnabled,
-      pinCode: pinCode ?? this.pinCode,
-      biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+      baselinePeriodDuration:
+          baselinePeriodDuration ?? this.baselinePeriodDuration,
     );
   }
 
@@ -73,9 +59,6 @@ class AppSettings {
       'onboardingCompleted': onboardingCompleted,
       'baselineCycleLength': baselineCycleLength,
       'baselinePeriodDuration': baselinePeriodDuration,
-      'pinEnabled': pinEnabled,
-      'pinCode': pinCode,
-      'biometricEnabled': biometricEnabled,
     };
   }
 
@@ -88,9 +71,6 @@ class AppSettings {
       onboardingCompleted: map['onboardingCompleted'] as bool? ?? false,
       baselineCycleLength: map['baselineCycleLength'] as int? ?? 28,
       baselinePeriodDuration: map['baselinePeriodDuration'] as int? ?? 5,
-      pinEnabled: map['pinEnabled'] as bool? ?? false,
-      pinCode: map['pinCode'] as String? ?? '',
-      biometricEnabled: map['biometricEnabled'] as bool? ?? false,
     );
   }
 }

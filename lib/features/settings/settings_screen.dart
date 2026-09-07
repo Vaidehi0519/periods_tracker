@@ -11,6 +11,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final auth = ref.watch(authProvider);
+    final lock = ref.watch(lockPreferencesProvider);
+    final lockPreferences = lock.preferences;
 
     return AppGradientBackground(
       child: Column(
@@ -53,15 +55,20 @@ class SettingsScreen extends ConsumerWidget {
                         : () async {
                             final nextName = await _askDisplayName(
                               context,
-                              initialValue: auth.firebaseUser?.displayName ?? '',
+                              initialValue:
+                                  auth.firebaseUser?.displayName ?? '',
                             );
                             if (nextName == null) {
                               return;
                             }
-                            final ok = await ref.read(authProvider.notifier).updateDisplayName(nextName);
+                            final ok = await ref
+                                .read(authProvider.notifier)
+                                .updateDisplayName(nextName);
                             if (context.mounted && ok) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Profile updated.')),
+                                const SnackBar(
+                                  content: Text('Profile updated.'),
+                                ),
                               );
                             }
                           },
@@ -80,11 +87,15 @@ class SettingsScreen extends ConsumerWidget {
                             if (reason == null) {
                               return;
                             }
-                            final ok = await ref.read(authProvider.notifier).requestAccountDeletion(reason: reason);
+                            final ok = await ref
+                                .read(authProvider.notifier)
+                                .requestAccountDeletion(reason: reason);
                             if (context.mounted && ok) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Deletion request submitted. Complete cleanup with your backend process.'),
+                                  content: Text(
+                                    'Deletion request submitted. Complete cleanup with your backend process.',
+                                  ),
                                 ),
                               );
                             }
@@ -104,7 +115,9 @@ class SettingsScreen extends ConsumerWidget {
               title: const Text('Dark mode'),
               value: settings.darkMode,
               onChanged: (value) {
-                ref.read(settingsProvider.notifier).update(settings.copyWith(darkMode: value));
+                ref
+                    .read(settingsProvider.notifier)
+                    .update(settings.copyWith(darkMode: value));
               },
             ),
           ),
@@ -122,7 +135,9 @@ class SettingsScreen extends ConsumerWidget {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      ref.read(settingsProvider.notifier).update(
+                      ref
+                          .read(settingsProvider.notifier)
+                          .update(
                             settings.copyWith(onboardingCompleted: false),
                           );
                     },
@@ -143,7 +158,9 @@ class SettingsScreen extends ConsumerWidget {
                   title: const Text('Period reminders'),
                   value: settings.periodReminders,
                   onChanged: (value) {
-                    ref.read(settingsProvider.notifier).update(settings.copyWith(periodReminders: value));
+                    ref
+                        .read(settingsProvider.notifier)
+                        .update(settings.copyWith(periodReminders: value));
                   },
                 ),
                 SwitchListTile(
@@ -151,7 +168,9 @@ class SettingsScreen extends ConsumerWidget {
                   title: const Text('Ovulation reminders'),
                   value: settings.ovulationReminders,
                   onChanged: (value) {
-                    ref.read(settingsProvider.notifier).update(settings.copyWith(ovulationReminders: value));
+                    ref
+                        .read(settingsProvider.notifier)
+                        .update(settings.copyWith(ovulationReminders: value));
                   },
                 ),
                 SwitchListTile(
@@ -159,7 +178,9 @@ class SettingsScreen extends ConsumerWidget {
                   title: const Text('Daily symptom reminder'),
                   value: settings.dailyLogReminder,
                   onChanged: (value) {
-                    ref.read(settingsProvider.notifier).update(settings.copyWith(dailyLogReminder: value));
+                    ref
+                        .read(settingsProvider.notifier)
+                        .update(settings.copyWith(dailyLogReminder: value));
                   },
                 ),
               ],
@@ -173,29 +194,33 @@ class SettingsScreen extends ConsumerWidget {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Enable PIN lock'),
-                  value: settings.pinEnabled,
+                  value: lockPreferences.pinEnabled,
                   onChanged: (value) async {
-                    if (value && settings.pinCode.isEmpty) {
+                    if (value) {
                       final pin = await _askPin(context);
                       if (pin == null) {
                         return;
                       }
-                      await ref.read(settingsProvider.notifier).update(
-                            settings.copyWith(pinEnabled: true, pinCode: pin),
-                          );
+                      await ref
+                          .read(lockPreferencesProvider.notifier)
+                          .enablePin(pin);
                       return;
                     }
-                    await ref.read(settingsProvider.notifier).update(settings.copyWith(pinEnabled: value));
+                    await ref
+                        .read(lockPreferencesProvider.notifier)
+                        .disablePin();
                   },
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Use biometric unlock'),
                   subtitle: const Text('Requires PIN to be enabled'),
-                  value: settings.biometricEnabled,
-                  onChanged: settings.pinEnabled
+                  value: lockPreferences.biometricEnabled,
+                  onChanged: lockPreferences.pinEnabled
                       ? (value) {
-                          ref.read(settingsProvider.notifier).update(settings.copyWith(biometricEnabled: value));
+                          ref
+                              .read(lockPreferencesProvider.notifier)
+                              .setBiometricEnabled(value);
                         }
                       : null,
                 ),
@@ -203,13 +228,15 @@ class SettingsScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: settings.pinEnabled
+                    onPressed: lockPreferences.pinEnabled
                         ? () async {
                             final pin = await _askPin(context);
                             if (pin == null) {
                               return;
                             }
-                            await ref.read(settingsProvider.notifier).update(settings.copyWith(pinCode: pin));
+                            await ref
+                                .read(lockPreferencesProvider.notifier)
+                                .enablePin(pin);
                           }
                         : null,
                     icon: const Icon(Icons.lock_reset),
@@ -226,7 +253,9 @@ class SettingsScreen extends ConsumerWidget {
                 Icon(Icons.verified_user_outlined),
                 SizedBox(width: 10),
                 Expanded(
-                  child: Text('Your account uses Firebase Auth and your cycle data syncs with Firestore in real time.'),
+                  child: Text(
+                    'Your account uses Firebase Auth and your cycle data syncs with Firestore. PIN lock settings stay local to this device.',
+                  ),
                 ),
               ],
             ),
@@ -260,7 +289,10 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: () {
                 if (formKey.currentState?.validate() ?? false) {
@@ -277,7 +309,10 @@ class SettingsScreen extends ConsumerWidget {
     return pin;
   }
 
-  Future<String?> _askDisplayName(BuildContext context, {required String initialValue}) async {
+  Future<String?> _askDisplayName(
+    BuildContext context, {
+    required String initialValue,
+  }) async {
     final controller = TextEditingController(text: initialValue);
     final formKey = GlobalKey<FormState>();
     final name = await showDialog<String>(
@@ -290,9 +325,7 @@ class SettingsScreen extends ConsumerWidget {
             child: TextFormField(
               controller: controller,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                labelText: 'Display name',
-              ),
+              decoration: const InputDecoration(labelText: 'Display name'),
               validator: (value) {
                 if ((value ?? '').trim().length < 2) {
                   return 'Enter at least 2 characters';
@@ -302,7 +335,10 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: () {
                 if (formKey.currentState?.validate() ?? false) {
@@ -336,7 +372,10 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: () => Navigator.pop(context, controller.text.trim()),
               child: const Text('Submit'),

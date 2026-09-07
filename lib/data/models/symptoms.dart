@@ -23,7 +23,11 @@ class Symptoms {
     return Symptoms(
       date: normalizeDate(date),
       mood: mood,
-      items: items.map((item) => item.trim()).where((item) => item.isNotEmpty).toSet().toList(),
+      items: items
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toSet()
+          .toList(),
       flow: flow,
       notes: notes.trim(),
     );
@@ -43,19 +47,25 @@ class Symptoms {
   factory Symptoms.fromMap(Map<dynamic, dynamic> map) {
     MoodType readMood() {
       final raw = map['mood'] as String?;
-      return MoodType.values.where((value) => value.name == raw).firstOrNull ?? MoodType.happy;
+      return MoodType.values.where((value) => value.name == raw).firstOrNull ??
+          MoodType.happy;
     }
 
     FlowIntensity readFlow() {
       final raw = map['flow'] as String?;
-      return FlowIntensity.values.where((value) => value.name == raw).firstOrNull ?? FlowIntensity.medium;
+      return FlowIntensity.values
+              .where((value) => value.name == raw)
+              .firstOrNull ??
+          FlowIntensity.medium;
     }
 
     final dateValue = map['date'] as String?;
     return Symptoms(
       date: dateValue == null ? DateTime.now() : DateTime.parse(dateValue),
       mood: readMood(),
-      items: List<String>.from((map['symptoms'] as List<dynamic>? ?? const <dynamic>[])),
+      items: List<String>.from(
+        (map['symptoms'] as List<dynamic>? ?? const <dynamic>[]),
+      ),
       flow: readFlow(),
       notes: (map['notes'] as String?) ?? '',
     ).normalized();

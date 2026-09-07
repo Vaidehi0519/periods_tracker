@@ -23,12 +23,15 @@ class FirebaseCycleRepository {
           // Ignore malformed documents so one bad record does not break rendering.
         }
       }
-      return values.values.toList()..sort((a, b) => a.startDate.compareTo(b.startDate));
+      return values.values.toList()
+        ..sort((a, b) => a.startDate.compareTo(b.startDate));
     });
   }
 
   Future<void> addPeriodLog(String userId, PeriodLog log) async {
     final normalized = log.normalized();
-    await _collection(userId).doc(dateKey(normalized.startDate)).set(normalized.toMap());
+    await _collection(
+      userId,
+    ).doc(dateKey(normalized.startDate)).set(normalized.toMap());
   }
 }

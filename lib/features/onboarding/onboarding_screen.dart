@@ -13,8 +13,12 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
-  final TextEditingController _cycleController = TextEditingController(text: '28');
-  final TextEditingController _periodController = TextEditingController(text: '5');
+  final TextEditingController _cycleController = TextEditingController(
+    text: '28',
+  );
+  final TextEditingController _periodController = TextEditingController(
+    text: '5',
+  );
   int _pageIndex = 0;
   bool _saving = false;
 
@@ -53,7 +57,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             borderRadius: BorderRadius.circular(999),
                             color: index <= _pageIndex
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.16),
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.16),
                           ),
                         ),
                       ),
@@ -63,21 +69,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Expanded(
                     child: PageView(
                       controller: _pageController,
-                      onPageChanged: (value) => setState(() => _pageIndex = value),
+                      onPageChanged: (value) =>
+                          setState(() => _pageIndex = value),
                       children: [
                         _IntroStep(
                           title: 'A calmer way to track your cycle',
                           body:
                               'We will use your cycle history, symptoms, and a few baseline details to predict your next period, ovulation day, and fertile window.',
                           icon: Icons.favorite_rounded,
-                          gradient: const [Color(0xFFE2749A), Color(0xFFF2B56A)],
+                          gradient: const [
+                            Color(0xFFE2749A),
+                            Color(0xFFF2B56A),
+                          ],
                         ),
                         _IntroStep(
                           title: 'Predictions work better with a baseline',
                           body:
                               'Enter your usual cycle length and period duration. These will be used until enough real logs are available.',
                           icon: Icons.insights_rounded,
-                          gradient: const [Color(0xFF6EC3B5), Color(0xFF7A8DE8)],
+                          gradient: const [
+                            Color(0xFF6EC3B5),
+                            Color(0xFF7A8DE8),
+                          ],
                           child: Column(
                             children: [
                               TextField(
@@ -107,25 +120,31 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           body:
                               'Predictions are estimates, not medical advice. Logging start dates consistently matters more than perfect detail on every day.',
                           icon: Icons.lightbulb_rounded,
-                          gradient: const [Color(0xFFF1AB62), Color(0xFFE27D8D)],
+                          gradient: const [
+                            Color(0xFFF1AB62),
+                            Color(0xFFE27D8D),
+                          ],
                           child: const Column(
                             children: [
                               TipRow(
                                 icon: Icons.edit_calendar,
                                 label: 'Log the first day of your period',
-                                body: 'That date drives cycle length, ovulation, and fertile window calculations.',
+                                body:
+                                    'That date drives cycle length, ovulation, and fertile window calculations.',
                               ),
                               SizedBox(height: 12),
                               TipRow(
                                 icon: Icons.monitor_heart_outlined,
                                 label: 'Use insights as patterns',
-                                body: 'Look for trends over time rather than expecting each cycle to match exactly.',
+                                body:
+                                    'Look for trends over time rather than expecting each cycle to match exactly.',
                               ),
                               SizedBox(height: 12),
                               TipRow(
                                 icon: Icons.local_hospital_outlined,
                                 label: 'Check with a clinician when needed',
-                                body: 'Irregular bleeding, severe pain, or sudden changes should not rely on app predictions alone.',
+                                body:
+                                    'Irregular bleeding, severe pain, or sudden changes should not rely on app predictions alone.',
                               ),
                             ],
                           ),
@@ -146,8 +165,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       if (_pageIndex > 0) const SizedBox(width: 12),
                       Expanded(
                         child: FilledButton(
-                          onPressed: _saving ? null : (_pageIndex == 2 ? _finish : _goNext),
-                          child: Text(_saving ? 'Saving...' : _pageIndex == 2 ? 'Start tracking' : 'Continue'),
+                          onPressed: _saving
+                              ? null
+                              : (_pageIndex == 2 ? _finish : _goNext),
+                          child: Text(
+                            _saving
+                                ? 'Saving...'
+                                : _pageIndex == 2
+                                ? 'Start tracking'
+                                : 'Continue',
+                          ),
                         ),
                       ),
                     ],
@@ -202,7 +229,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -230,17 +259,16 @@ class _IntroStep extends StatelessWidget {
           child: HighlightCard(
             title: title,
             subtitle: body,
-            primaryValue: 'Private by default',
-            secondaryValue: 'Your logs stay on-device.',
+            primaryValue: 'Private account sync',
+            secondaryValue:
+                'Your logs sync only under your Firebase user account.',
             icon: icon,
             gradient: gradient,
           ),
         ),
         if (child != null) ...[
           const SizedBox(height: 18),
-          AnimatedEntrance(
-            child: AppSectionCard(child: child!),
-          ),
+          AnimatedEntrance(child: AppSectionCard(child: child!)),
         ],
       ],
     );

@@ -36,7 +36,8 @@ class _PeriodsTrackerAppState extends ConsumerState<PeriodsTrackerApp> {
     final firebaseStatus = ref.watch(firebaseAppStatusProvider);
     final auth = ref.watch(authProvider);
     final settingsLoaded = ref.watch(settingsLoadedProvider);
-    final settings = auth.isLoggedIn && auth.isEmailVerified && firebaseStatus.isReady
+    final settings =
+        auth.isLoggedIn && auth.isEmailVerified && firebaseStatus.isReady
         ? ref.watch(settingsProvider)
         : null;
 
@@ -44,20 +45,22 @@ class _PeriodsTrackerAppState extends ConsumerState<PeriodsTrackerApp> {
       title: 'Periods Tracker',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: (settings?.darkMode ?? false) ? ThemeMode.dark : ThemeMode.light,
+      themeMode: (settings?.darkMode ?? false)
+          ? ThemeMode.dark
+          : ThemeMode.light,
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
         child: _showSplash
             ? const AnimatedSplashScreen()
             : !firebaseStatus.isReady
-                ? const FirebaseSetupScreen()
-                : auth.isLoading || (auth.isLoggedIn && !settingsLoaded)
-                    ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-                    : !auth.isLoggedIn || !auth.isEmailVerified
-                        ? const AuthScreen()
-                        : settings!.onboardingCompleted
-                            ? const HomeShell()
-                            : const OnboardingScreen(),
+            ? const FirebaseSetupScreen()
+            : auth.isLoading || (auth.isLoggedIn && !settingsLoaded)
+            ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+            : !auth.isLoggedIn || !auth.isEmailVerified
+            ? const AuthScreen()
+            : settings!.onboardingCompleted
+            ? const HomeShell()
+            : const OnboardingScreen(),
       ),
     );
   }

@@ -21,8 +21,16 @@ class AppGradientBackground extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: isDark
-                  ? const [Color(0xFF17131D), Color(0xFF110F16), Color(0xFF151C22)]
-                  : const [Color(0xFFFFF1F6), Color(0xFFF8FBFF), Color(0xFFF7FFF9)],
+                  ? const [
+                      Color(0xFF17131D),
+                      Color(0xFF110F16),
+                      Color(0xFF151C22),
+                    ]
+                  : const [
+                      Color(0xFFFFF1F6),
+                      Color(0xFFF8FBFF),
+                      Color(0xFFF7FFF9),
+                    ],
             ),
           ),
         ),
@@ -43,10 +51,7 @@ class AppGradientBackground extends StatelessWidget {
           ),
         ),
         SafeArea(
-          child: ListView(
-            padding: padding,
-            children: [child],
-          ),
+          child: ListView(padding: padding, children: [child]),
         ),
       ],
     );
@@ -101,10 +106,14 @@ class AppSectionCard extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF241F2B).withValues(alpha: 0.92) : Colors.white.withValues(alpha: 0.88),
+        color: isDark
+            ? const Color(0xFF241F2B).withValues(alpha: 0.92)
+            : Colors.white.withValues(alpha: 0.88),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.65),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white.withValues(alpha: 0.65),
         ),
         boxShadow: [
           BoxShadow(
@@ -249,16 +258,16 @@ class HighlightCard extends StatelessWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.84),
-                          ),
+                        color: Colors.white.withValues(alpha: 0.84),
+                      ),
                     ),
                   ],
                 ),
@@ -269,16 +278,16 @@ class HighlightCard extends StatelessWidget {
           Text(
             primaryValue,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             secondaryValue,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.88),
-                ),
+              color: Colors.white.withValues(alpha: 0.88),
+            ),
           ),
         ],
       ),
@@ -307,10 +316,16 @@ class TipRow extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+          child: Icon(
+            icon,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(

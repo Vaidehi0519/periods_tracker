@@ -8,7 +8,11 @@ class FirebaseSettingsRepository {
   final FirebaseFirestore _firestore;
 
   DocumentReference<Map<String, dynamic>> _document(String userId) {
-    return _firestore.collection('users').doc(userId).collection('meta').doc('settings');
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('meta')
+        .doc('settings');
   }
 
   Stream<AppSettings> watchSettings(String userId) {

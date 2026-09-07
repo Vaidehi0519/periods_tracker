@@ -23,26 +23,30 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
-    final settings = ref.read(settingsProvider);
-    _unlocked = !settings.pinEnabled;
+    final lock = ref.read(lockPreferencesProvider);
+    _unlocked = !lock.preferences.pinEnabled;
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(settingsProvider, (previous, next) {
-      if (next.pinEnabled && !(_unlocked && previous?.pinEnabled == true)) {
+    ref.listen(lockPreferencesProvider, (previous, next) {
+      final previousPinEnabled = previous?.preferences.pinEnabled ?? false;
+      final nextPinEnabled = next.preferences.pinEnabled;
+      if (nextPinEnabled && !(_unlocked && previousPinEnabled)) {
         setState(() {
           _unlocked = false;
         });
       }
-      if (!next.pinEnabled && !_unlocked) {
+      if (!nextPinEnabled && !_unlocked) {
         setState(() {
           _unlocked = true;
         });
       }
     });
     ref.listen(reminderPayloadProvider, (previous, next) {
-      ref.read(notificationServiceProvider).updateCyclePredictionReminders(
+      ref
+          .read(notificationServiceProvider)
+          .updateCyclePredictionReminders(
             periodEnabled: next.periodEnabled,
             ovulationEnabled: next.ovulationEnabled,
             nextPeriod: next.nextPeriodDate,
@@ -50,8 +54,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           );
     });
 
-    final settings = ref.watch(settingsProvider);
-    if (settings.pinEnabled && !_unlocked) {
+    final lock = ref.watch(lockPreferencesProvider);
+    if (lock.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (lock.preferences.pinEnabled && !_unlocked) {
       return LockScreen(
         onUnlocked: () {
           setState(() {
@@ -73,7 +80,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: NavigationBar(
         elevation: 0,
-        indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() {

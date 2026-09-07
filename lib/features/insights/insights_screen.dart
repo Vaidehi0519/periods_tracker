@@ -21,7 +21,9 @@ class InsightsScreen extends ConsumerWidget {
     final cycleStatus = ref.watch(cycleStatusProvider);
     final strongestSymptom = symptomCounts.entries.isEmpty
         ? null
-        : (symptomCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first;
+        : (symptomCounts.entries.toList()
+                ..sort((a, b) => b.value.compareTo(a.value)))
+              .first;
 
     return AppGradientBackground(
       child: Column(
@@ -68,7 +70,10 @@ class InsightsScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Period Regularity', style: Theme.of(context).textTheme.titleSmall),
+                        Text(
+                          'Period Regularity',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
                         Text(_regularityLabel(prediction.regularityScore)),
                       ],
                     ),
@@ -84,9 +89,15 @@ class InsightsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Current Phase', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    'Current Phase',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 6),
-                  Text(cycleStatus.phase, style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    cycleStatus.phase,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 4),
                   Text(cycleStatus.summary),
                 ],
@@ -99,14 +110,17 @@ class InsightsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Fertility Prediction', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    'Fertility Prediction',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 6),
                   Text(
                     prediction.ovulationDate == null
                         ? 'Log more periods to improve predictions.'
                         : 'Ovulation: ${prediction.ovulationDate!.month}/${prediction.ovulationDate!.day}\n'
-                            'Fertile: ${prediction.fertileStart!.month}/${prediction.fertileStart!.day}'
-                            ' - ${prediction.fertileEnd!.month}/${prediction.fertileEnd!.day}',
+                              'Fertile: ${prediction.fertileStart!.month}/${prediction.fertileStart!.day}'
+                              ' - ${prediction.fertileEnd!.month}/${prediction.fertileEnd!.day}',
                   ),
                 ],
               ),
@@ -118,7 +132,10 @@ class InsightsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Cycle Trend Chart', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    'Cycle Trend Chart',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 14),
                   cycleLengths.isEmpty
                       ? const Text('Need at least 2 logged periods.')
@@ -140,7 +157,10 @@ class InsightsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Symptom Trends', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Symptom Trends',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           if (symptomCounts.isEmpty)
             const AppSectionCard(child: Text('No symptom logs yet.'))
@@ -150,12 +170,19 @@ class InsightsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Top symptoms', style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      'Top symptoms',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                     const SizedBox(height: 12),
                     ..._topSymptoms(symptomCounts).map(
                       (entry) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: _SymptomMeter(label: entry.key, value: entry.value, maxValue: _maxCount(symptomCounts)),
+                        child: _SymptomMeter(
+                          label: entry.key,
+                          value: entry.value,
+                          maxValue: _maxCount(symptomCounts),
+                        ),
                       ),
                     ),
                   ],
@@ -168,10 +195,15 @@ class InsightsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Common before-period symptoms', style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      'Common before-period symptoms',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                     const SizedBox(height: 12),
                     if (prePeriodSymptoms.isEmpty)
-                      const Text('Log a few cycles and symptoms to find pre-period patterns.')
+                      const Text(
+                        'Log a few cycles and symptoms to find pre-period patterns.',
+                      )
                     else
                       ..._topSymptoms(prePeriodSymptoms).map(
                         (entry) => Padding(
@@ -193,7 +225,10 @@ class InsightsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Symptoms by phase', style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      'Symptoms by phase',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                     const SizedBox(height: 12),
                     ...phaseBreakdown.entries.map(
                       (entry) => Padding(
@@ -215,7 +250,8 @@ class InsightsScreen extends ConsumerWidget {
   }
 
   List<MapEntry<String, int>> _topSymptoms(Map<String, int> symptomCounts) {
-    final sorted = symptomCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sorted = symptomCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
     return sorted.take(5).toList(growable: false);
   }
 
@@ -258,11 +294,16 @@ class _CycleLengthChart extends StatelessWidget {
             final normalized = ((value - minValue) / spread).clamp(0.18, 1.0);
             return Expanded(
               child: Padding(
-                padding: EdgeInsets.only(right: index == values.length - 1 ? 0 : 10),
+                padding: EdgeInsets.only(
+                  right: index == values.length - 1 ? 0 : 10,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text('${values[index]}', style: Theme.of(context).textTheme.labelMedium),
+                    Text(
+                      '${values[index]}',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
                     const SizedBox(height: 6),
                     Expanded(
                       child: Align(
@@ -275,10 +316,7 @@ class _CycleLengthChart extends StatelessWidget {
                             gradient: const LinearGradient(
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,
-                              colors: [
-                                Color(0xFFDA6D8F),
-                                Color(0xFF6FC2B5),
-                              ],
+                              colors: [Color(0xFFDA6D8F), Color(0xFF6FC2B5)],
                             ),
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -286,7 +324,10 @@ class _CycleLengthChart extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('C${index + 1}', style: Theme.of(context).textTheme.labelSmall),
+                    Text(
+                      'C${index + 1}',
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
                   ],
                 ),
               ),
@@ -318,7 +359,9 @@ class _SymptomMeter extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
+            Expanded(
+              child: Text(label, style: Theme.of(context).textTheme.titleSmall),
+            ),
             Text('${value}x'),
           ],
         ),
@@ -328,7 +371,9 @@ class _SymptomMeter extends StatelessWidget {
           child: LinearProgressIndicator(
             value: widthFactor,
             minHeight: 10,
-            backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.08),
             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFDA6D8F)),
           ),
         ),
@@ -338,17 +383,15 @@ class _SymptomMeter extends StatelessWidget {
 }
 
 class _PhaseSection extends StatelessWidget {
-  const _PhaseSection({
-    required this.phase,
-    required this.symptoms,
-  });
+  const _PhaseSection({required this.phase, required this.symptoms});
 
   final String phase;
   final Map<String, int> symptoms;
 
   @override
   Widget build(BuildContext context) {
-    final sorted = symptoms.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sorted = symptoms.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,7 +401,9 @@ class _PhaseSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.14),
+                color: Theme.of(
+                  context,
+                ).colorScheme.secondary.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(phase, style: Theme.of(context).textTheme.labelLarge),
@@ -367,14 +412,20 @@ class _PhaseSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         if (sorted.isEmpty)
-          Text('No symptom logs in this phase yet.', style: Theme.of(context).textTheme.bodyMedium)
+          Text(
+            'No symptom logs in this phase yet.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          )
         else
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: sorted.take(4).map((entry) {
-              return Chip(label: Text('${entry.key} ${entry.value}x'));
-            }).toList(growable: false),
+            children: sorted
+                .take(4)
+                .map((entry) {
+                  return Chip(label: Text('${entry.key} ${entry.value}x'));
+                })
+                .toList(growable: false),
           ),
       ],
     );

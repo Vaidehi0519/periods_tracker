@@ -24,9 +24,9 @@ class DashboardScreen extends ConsumerWidget {
       return;
     }
 
-    await ref.read(cyclesProvider.notifier).addCycle(
-          PeriodLog(startDate: selected.start, endDate: selected.end),
-        );
+    await ref
+        .read(cyclesProvider.notifier)
+        .addCycle(PeriodLog(startDate: selected.start, endDate: selected.end));
   }
 
   @override
@@ -42,7 +42,7 @@ class DashboardScreen extends ConsumerWidget {
           AnimatedEntrance(
             child: ScreenHeader(
               title: 'Dashboard',
-              subtitle: 'Track your cycle with private, local data',
+              subtitle: 'Track your cycle with account-scoped cloud sync',
               action: FilledButton.tonalIcon(
                 onPressed: () => _showAddCycleDialog(context, ref),
                 icon: const Icon(Icons.add),
@@ -127,7 +127,10 @@ class DashboardScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Today\'s guidance', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Today\'s guidance',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 10),
                   TipRow(
                     icon: Icons.self_improvement,
@@ -145,12 +148,17 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Text('Recent Period Logs', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Recent Period Logs',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           if (cycles.isEmpty)
             const AppSectionCard(child: Text('No cycle entries yet.'))
           else
-            ...cycles.reversed.take(6).map(
+            ...cycles.reversed
+                .take(6)
+                .map(
                   (cycle) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: AnimatedEntrance(
@@ -166,16 +174,23 @@ class DashboardScreen extends ConsumerWidget {
                                 children: [
                                   Text(
                                     '${formatPretty(cycle.startDate)} - ${formatPretty(cycle.endDate)}',
-                                    style: Theme.of(context).textTheme.titleSmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
                                   ),
                                   Text('${cycle.periodDuration} day period'),
                                 ],
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Text(

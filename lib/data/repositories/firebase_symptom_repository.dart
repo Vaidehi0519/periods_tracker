@@ -29,6 +29,8 @@ class FirebaseSymptomRepository {
 
   Future<void> upsertEntry(String userId, Symptoms entry) async {
     final normalized = entry.normalized();
-    await _collection(userId).doc(dateKey(normalized.date)).set(normalized.toMap());
+    await _collection(
+      userId,
+    ).doc(dateKey(normalized.date)).set(normalized.toMap());
   }
 }

@@ -11,12 +11,13 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^2.6.1
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
   table_calendar: ^3.2.0
   intl: ^0.20.2
   local_auth: ^2.3.0
   flutter_local_notifications: ^19.4.0
+  shared_preferences: ^2.5.5
+  timezone: ^0.10.1
+  crypto: ^3.0.7
   google_fonts: ^8.0.2
   firebase_core: ^4.6.0
   firebase_auth: ^6.3.0

@@ -9,7 +9,8 @@ class AnimatedSplashScreen extends StatefulWidget {
   State<AnimatedSplashScreen> createState() => _AnimatedSplashScreenState();
 }
 
-class _AnimatedSplashScreenState extends State<AnimatedSplashScreen> with SingleTickerProviderStateMixin {
+class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
@@ -39,8 +40,16 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen> with Single
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? const [Color(0xFF17131D), Color(0xFF1A2630), Color(0xFF201A28)]
-                    : const [Color(0xFFFFF1F6), Color(0xFFF6FBFF), Color(0xFFFFF8EE)],
+                    ? const [
+                        Color(0xFF17131D),
+                        Color(0xFF1A2630),
+                        Color(0xFF201A28),
+                      ]
+                    : const [
+                        Color(0xFFFFF1F6),
+                        Color(0xFFF6FBFF),
+                        Color(0xFFFFF8EE),
+                      ],
               ),
             ),
           ),
@@ -63,10 +72,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen> with Single
                   final rotation = (_controller.value - 0.5) * 0.08;
                   return Transform.rotate(
                     angle: rotation,
-                    child: Transform.scale(
-                      scale: scale,
-                      child: child,
-                    ),
+                    child: Transform.scale(scale: scale, child: child),
                   );
                 },
                 child: Column(
@@ -94,14 +100,17 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen> with Single
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 56),
+                      child: const Icon(
+                        Icons.favorite_rounded,
+                        color: Colors.white,
+                        size: 56,
+                      ),
                     ),
                     const SizedBox(height: 22),
                     Text(
                       'Periods Tracker',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 8),
                     Padding(
@@ -120,8 +129,12 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen> with Single
                         child: LinearProgressIndicator(
                           minHeight: 6,
                           value: math.max(0.12, _controller.value),
-                          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFDA6D8F)),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.12),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFFDA6D8F),
+                          ),
                         ),
                       ),
                     ),

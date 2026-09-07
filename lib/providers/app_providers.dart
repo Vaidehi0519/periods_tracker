@@ -18,17 +18,17 @@ import '../data/repositories/firebase_symptom_repository.dart';
 import '../domain/services/cycle_predictor.dart';
 
 class FirebaseAppStatus {
-  const FirebaseAppStatus({
-    required this.isReady,
-    this.errorMessage,
-  });
+  const FirebaseAppStatus({required this.isReady, this.errorMessage});
 
   final bool isReady;
   final String? errorMessage;
 }
 
 final firebaseAppStatusProvider = Provider<FirebaseAppStatus>((ref) {
-  return const FirebaseAppStatus(isReady: false, errorMessage: 'Firebase is not initialized.');
+  return const FirebaseAppStatus(
+    isReady: false,
+    errorMessage: 'Firebase is not initialized.',
+  );
 });
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
@@ -58,6 +58,128 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 final lockServiceProvider = Provider<LockService>((ref) {
   return LockService(LocalAuthentication());
 });
+
+class LockPreferencesState {
+  const LockPreferencesState({
+    required this.isLoading,
+    required this.preferences,
+  });
+
+  final bool isLoading;
+  final LockPreferences preferences;
+
+  static const loading = LockPreferencesState(
+    isLoading: true,
+    preferences: LockPreferences.empty,
+  );
+
+  LockPreferencesState copyWith({
+    bool? isLoading,
+    LockPreferences? preferences,
+  }) {
+    return LockPreferencesState(
+      isLoading: isLoading ?? this.isLoading,
+      preferences: preferences ?? this.preferences,
+    );
+  }
+}
+
+class LockPreferencesController extends StateNotifier<LockPreferencesState> {
+  LockPreferencesController(this._ref, this._service)
+    : super(LockPreferencesState.loading) {
+    _loadForCurrentUser();
+  }
+
+  final Ref _ref;
+  final LockService _service;
+
+  Future<void> _loadForCurrentUser() async {
+    final userId = _ref.read(authProvider).firebaseUser?.uid;
+    if (userId == null) {
+      state = const LockPreferencesState(
+        isLoading: false,
+        preferences: LockPreferences.empty,
+      );
+      return;
+    }
+
+    state = state.copyWith(isLoading: true);
+    final preferences = await _service.load(userId);
+    state = LockPreferencesState(isLoading: false, preferences: preferences);
+  }
+
+  void onAuthChanged(String? userId) {
+    if (userId == null) {
+      state = const LockPreferencesState(
+        isLoading: false,
+        preferences: LockPreferences.empty,
+      );
+      return;
+    }
+    _loadForCurrentUser();
+  }
+
+  Future<void> enablePin(String pin) async {
+    final userId = _ref.read(authProvider).firebaseUser?.uid;
+    if (userId == null) {
+      return;
+    }
+    await _service.setPin(userId, pin);
+    final current = state.preferences;
+    state = LockPreferencesState(
+      isLoading: false,
+      preferences: current.copyWith(pinEnabled: true),
+    );
+  }
+
+  Future<void> disablePin() async {
+    final userId = _ref.read(authProvider).firebaseUser?.uid;
+    if (userId == null) {
+      return;
+    }
+    await _service.clearPin(userId);
+    state = const LockPreferencesState(
+      isLoading: false,
+      preferences: LockPreferences.empty,
+    );
+  }
+
+  Future<bool> verifyPin(String pin) async {
+    final userId = _ref.read(authProvider).firebaseUser?.uid;
+    if (userId == null) {
+      return false;
+    }
+    return _service.verifyPin(userId, pin);
+  }
+
+  Future<void> setBiometricEnabled(bool enabled) async {
+    final userId = _ref.read(authProvider).firebaseUser?.uid;
+    if (userId == null) {
+      return;
+    }
+    await _service.setBiometricEnabled(userId, enabled);
+    state = state.copyWith(
+      isLoading: false,
+      preferences: state.preferences.copyWith(biometricEnabled: enabled),
+    );
+  }
+}
+
+final lockPreferencesProvider =
+    StateNotifierProvider<LockPreferencesController, LockPreferencesState>((
+      ref,
+    ) {
+      final controller = LockPreferencesController(
+        ref,
+        ref.watch(lockServiceProvider),
+      );
+      ref.listen<AuthState>(authProvider, (previous, next) {
+        if (previous?.firebaseUser?.uid != next.firebaseUser?.uid) {
+          controller.onAuthChanged(next.firebaseUser?.uid);
+        }
+      });
+      return controller;
+    });
 
 class AuthState {
   const AuthState({
@@ -153,15 +275,14 @@ class AuthController extends StateNotifier<AuthState> {
       );
       return true;
     } on FirebaseAuthException catch (error) {
-      state = state.copyWith(errorMessage: error.message ?? 'Unable to create account.');
+      state = state.copyWith(
+        errorMessage: error.message ?? 'Unable to create account.',
+      );
       return false;
     }
   }
 
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     if (_auth == null) {
       state = state.copyWith(errorMessage: 'Firebase Auth is not available.');
       return false;
@@ -179,7 +300,9 @@ class AuthController extends StateNotifier<AuthState> {
       );
       return true;
     } on FirebaseAuthException catch (error) {
-      state = state.copyWith(errorMessage: error.message ?? 'Unable to sign in.');
+      state = state.copyWith(
+        errorMessage: error.message ?? 'Unable to sign in.',
+      );
       return false;
     }
   }
@@ -206,7 +329,9 @@ class AuthController extends StateNotifier<AuthState> {
       await _auth.sendPasswordResetEmail(email: email.trim());
       return true;
     } on FirebaseAuthException catch (error) {
-      state = state.copyWith(errorMessage: error.message ?? 'Unable to send reset email.');
+      state = state.copyWith(
+        errorMessage: error.message ?? 'Unable to send reset email.',
+      );
       return false;
     }
   }
@@ -220,7 +345,9 @@ class AuthController extends StateNotifier<AuthState> {
       await _auth.currentUser?.sendEmailVerification();
       return true;
     } on FirebaseAuthException catch (error) {
-      state = state.copyWith(errorMessage: error.message ?? 'Unable to send verification email.');
+      state = state.copyWith(
+        errorMessage: error.message ?? 'Unable to send verification email.',
+      );
       return false;
     }
   }
@@ -246,7 +373,9 @@ class AuthController extends StateNotifier<AuthState> {
     }
     final trimmed = name.trim();
     if (trimmed.length < 2) {
-      state = state.copyWith(errorMessage: 'Name must be at least 2 characters.');
+      state = state.copyWith(
+        errorMessage: 'Name must be at least 2 characters.',
+      );
       return false;
     }
 
@@ -262,7 +391,9 @@ class AuthController extends StateNotifier<AuthState> {
       );
       return true;
     } on FirebaseAuthException catch (error) {
-      state = state.copyWith(errorMessage: error.message ?? 'Unable to update profile.');
+      state = state.copyWith(
+        errorMessage: error.message ?? 'Unable to update profile.',
+      );
       return false;
     }
   }
@@ -279,17 +410,25 @@ class AuthController extends StateNotifier<AuthState> {
     }
 
     try {
-      await _ref.read(firestoreProvider).collection('users').doc(user.uid).collection('meta').doc('deletion_request').set({
-        'requestedAt': FieldValue.serverTimestamp(),
-        'uid': user.uid,
-        'email': user.email,
-        'displayName': user.displayName,
-        'reason': reason.trim(),
-        'status': 'requested',
-      });
+      await _ref
+          .read(firestoreProvider)
+          .collection('users')
+          .doc(user.uid)
+          .collection('meta')
+          .doc('deletion_request')
+          .set({
+            'requestedAt': FieldValue.serverTimestamp(),
+            'uid': user.uid,
+            'email': user.email,
+            'displayName': user.displayName,
+            'reason': reason.trim(),
+            'status': 'requested',
+          });
       return true;
     } on FirebaseException catch (error) {
-      state = state.copyWith(errorMessage: error.message ?? 'Unable to create deletion request.');
+      state = state.copyWith(
+        errorMessage: error.message ?? 'Unable to create deletion request.',
+      );
       return false;
     }
   }
@@ -305,15 +444,13 @@ class AuthController extends StateNotifier<AuthState> {
   }
 }
 
-final authProvider = StateNotifierProvider<AuthController, AuthState>(
-  (ref) {
-    final firebaseStatus = ref.watch(firebaseAppStatusProvider);
-    return AuthController(
-      ref,
-      firebaseStatus.isReady ? ref.watch(firebaseAuthProvider) : null,
-    );
-  },
-);
+final authProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
+  final firebaseStatus = ref.watch(firebaseAppStatusProvider);
+  return AuthController(
+    ref,
+    firebaseStatus.isReady ? ref.watch(firebaseAuthProvider) : null,
+  );
+});
 
 final settingsLoadedProvider = StateProvider<bool>((ref) => false);
 
@@ -358,20 +495,21 @@ class CycleController extends StateNotifier<List<PeriodLog>> {
   }
 }
 
-final cyclesProvider = StateNotifierProvider<CycleController, List<PeriodLog>>(
-  (ref) {
-    final controller = CycleController(ref, ref.watch(cycleRepositoryProvider));
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      if (previous?.firebaseUser?.uid != next.firebaseUser?.uid) {
-        controller.onAuthChanged(next.firebaseUser?.uid);
-      }
-    });
-    return controller;
-  },
-);
+final cyclesProvider = StateNotifierProvider<CycleController, List<PeriodLog>>((
+  ref,
+) {
+  final controller = CycleController(ref, ref.watch(cycleRepositoryProvider));
+  ref.listen<AuthState>(authProvider, (previous, next) {
+    if (previous?.firebaseUser?.uid != next.firebaseUser?.uid) {
+      controller.onAuthChanged(next.firebaseUser?.uid);
+    }
+  });
+  return controller;
+});
 
 class SymptomController extends StateNotifier<Map<String, Symptoms>> {
-  SymptomController(this._ref, this._repository) : super(const <String, Symptoms>{}) {
+  SymptomController(this._ref, this._repository)
+    : super(const <String, Symptoms>{}) {
     final auth = _ref.read(authProvider);
     _watchUser(auth.firebaseUser?.uid);
   }
@@ -415,20 +553,23 @@ class SymptomController extends StateNotifier<Map<String, Symptoms>> {
   }
 }
 
-final symptomsProvider = StateNotifierProvider<SymptomController, Map<String, Symptoms>>(
-  (ref) {
-    final controller = SymptomController(ref, ref.watch(symptomRepositoryProvider));
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      if (previous?.firebaseUser?.uid != next.firebaseUser?.uid) {
-        controller.onAuthChanged(next.firebaseUser?.uid);
-      }
+final symptomsProvider =
+    StateNotifierProvider<SymptomController, Map<String, Symptoms>>((ref) {
+      final controller = SymptomController(
+        ref,
+        ref.watch(symptomRepositoryProvider),
+      );
+      ref.listen<AuthState>(authProvider, (previous, next) {
+        if (previous?.firebaseUser?.uid != next.firebaseUser?.uid) {
+          controller.onAuthChanged(next.firebaseUser?.uid);
+        }
+      });
+      return controller;
     });
-    return controller;
-  },
-);
 
 class SettingsController extends StateNotifier<AppSettings> {
-  SettingsController(this._ref, this._repository, this._notifications) : super(AppSettings.defaults()) {
+  SettingsController(this._ref, this._repository, this._notifications)
+    : super(AppSettings.defaults()) {
     final auth = _ref.read(authProvider);
     _watchUser(auth.firebaseUser?.uid);
   }
@@ -575,7 +716,9 @@ final symptomCountsProvider = Provider<Map<String, int>>((ref) {
   return ref.watch(analyticsProvider).symptomCounts;
 });
 
-final phaseSymptomBreakdownProvider = Provider<Map<String, Map<String, int>>>((ref) {
+final phaseSymptomBreakdownProvider = Provider<Map<String, Map<String, int>>>((
+  ref,
+) {
   final cycles = ref.watch(analyticsProvider).cycles;
   final breakdown = <String, Map<String, int>>{
     'Menstrual': <String, int>{},
@@ -585,11 +728,14 @@ final phaseSymptomBreakdownProvider = Provider<Map<String, Map<String, int>>>((r
   };
 
   for (final cycle in cycles) {
-    final cycleLength = cycle.cycleLength ?? ref.watch(predictionProvider).averageCycleLength;
+    final cycleLength =
+        cycle.cycleLength ?? ref.watch(predictionProvider).averageCycleLength;
     final ovulationOffset = cycleLength - 14;
     final cycleStart = normalizeDate(cycle.startDate);
     final periodEnd = normalizeDate(cycle.endDate);
-    final ovulationDay = cycleStart.add(Duration(days: ovulationOffset.clamp(0, cycleLength)));
+    final ovulationDay = cycleStart.add(
+      Duration(days: ovulationOffset.clamp(0, cycleLength)),
+    );
     final fertileStart = ovulationDay.subtract(const Duration(days: 5));
 
     for (final symptom in cycle.symptoms) {
@@ -597,12 +743,12 @@ final phaseSymptomBreakdownProvider = Provider<Map<String, Map<String, int>>>((r
       final phase = !date.isBefore(cycleStart) && !date.isAfter(periodEnd)
           ? 'Menstrual'
           : dateKey(date) == dateKey(ovulationDay)
-              ? 'Ovulation'
-              : !date.isBefore(fertileStart) && date.isBefore(ovulationDay)
-                  ? 'Follicular'
-                  : date.isBefore(ovulationDay)
-                      ? 'Follicular'
-                      : 'Luteal';
+          ? 'Ovulation'
+          : !date.isBefore(fertileStart) && date.isBefore(ovulationDay)
+          ? 'Follicular'
+          : date.isBefore(ovulationDay)
+          ? 'Follicular'
+          : 'Luteal';
 
       final bucket = breakdown[phase]!;
       for (final item in symptom.items) {
@@ -650,7 +796,10 @@ class PhaseLengthSummary {
 final phaseLengthSummaryProvider = Provider<PhaseLengthSummary>((ref) {
   final prediction = ref.watch(predictionProvider);
   const lutealDays = 14;
-  final follicularDays = (prediction.averageCycleLength - lutealDays).clamp(7, 25);
+  final follicularDays = (prediction.averageCycleLength - lutealDays).clamp(
+    7,
+    25,
+  );
   return PhaseLengthSummary(
     follicularDays: follicularDays,
     lutealDays: lutealDays,
@@ -685,7 +834,8 @@ final cycleStatusProvider = Provider<CycleStatus>((ref) {
       phase: 'Getting started',
       summary: 'Add a couple of period logs to unlock cycle-aware guidance.',
       tipTitle: 'Build your baseline',
-      tipBody: 'Logging start dates consistently improves period, ovulation, and fertile window accuracy.',
+      tipBody:
+          'Logging start dates consistently improves period, ovulation, and fertile window accuracy.',
       daysUntilNextPeriod: null,
       daysUntilOvulation: null,
     );
@@ -704,19 +854,27 @@ final cycleStatusProvider = Provider<CycleStatus>((ref) {
       phase: 'Menstrual',
       summary: 'You are currently in your period window.',
       tipTitle: 'Recovery first',
-      tipBody: 'Prioritize hydration, iron-rich meals, and lower-intensity movement if energy feels reduced.',
+      tipBody:
+          'Prioritize hydration, iron-rich meals, and lower-intensity movement if energy feels reduced.',
       daysUntilNextPeriod: nextPeriod?.difference(today).inDays,
       daysUntilOvulation: ovulation?.difference(today).inDays,
     );
   }
 
-  if (fertileStart != null && fertileEnd != null && !today.isBefore(fertileStart) && !today.isAfter(fertileEnd)) {
-    final isOvulationDay = ovulation != null && dateKey(today) == dateKey(ovulation);
+  if (fertileStart != null &&
+      fertileEnd != null &&
+      !today.isBefore(fertileStart) &&
+      !today.isAfter(fertileEnd)) {
+    final isOvulationDay =
+        ovulation != null && dateKey(today) == dateKey(ovulation);
     return CycleStatus(
       phase: isOvulationDay ? 'Ovulation' : 'Fertile window',
-      summary: isOvulationDay ? 'Today is your estimated ovulation day.' : 'You are in your estimated fertile window.',
+      summary: isOvulationDay
+          ? 'Today is your estimated ovulation day.'
+          : 'You are in your estimated fertile window.',
       tipTitle: 'Watch your body signals',
-      tipBody: 'Cervical mucus, libido changes, and mild pelvic discomfort can line up with this part of the cycle.',
+      tipBody:
+          'Cervical mucus, libido changes, and mild pelvic discomfort can line up with this part of the cycle.',
       daysUntilNextPeriod: nextPeriod?.difference(today).inDays,
       daysUntilOvulation: ovulation?.difference(today).inDays,
     );
@@ -728,7 +886,8 @@ final cycleStatusProvider = Provider<CycleStatus>((ref) {
       phase: 'Follicular',
       summary: 'Energy often trends upward between your period and ovulation.',
       tipTitle: 'Good time to plan',
-      tipBody: 'This phase can be a useful window for exercise consistency, meal prep, and habit-building.',
+      tipBody:
+          'This phase can be a useful window for exercise consistency, meal prep, and habit-building.',
       daysUntilNextPeriod: nextPeriod?.difference(today).inDays,
       daysUntilOvulation: ovulation.difference(today).inDays,
     );
@@ -738,7 +897,8 @@ final cycleStatusProvider = Provider<CycleStatus>((ref) {
     phase: 'Luteal',
     summary: 'You are in the time between ovulation and your next period.',
     tipTitle: 'Support mood and recovery',
-    tipBody: 'Prioritize sleep, steady meals, and symptom logging here because PMS patterns often show up in this phase.',
+    tipBody:
+        'Prioritize sleep, steady meals, and symptom logging here because PMS patterns often show up in this phase.',
     daysUntilNextPeriod: nextPeriod?.difference(today).inDays,
     daysUntilOvulation: ovulation?.difference(today).inDays,
   );

@@ -79,11 +79,14 @@ class CyclePredictor {
     for (final log in normalized) {
       deduped[dateKey(log.startDate)] = log;
     }
-    final sorted = deduped.values.toList()..sort((a, b) => a.startDate.compareTo(b.startDate));
+    final sorted = deduped.values.toList()
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
 
     final cycleLengths = <int>[];
     for (var i = 1; i < sorted.length; i++) {
-      final days = sorted[i].startDate.difference(sorted[i - 1].startDate).inDays;
+      final days = sorted[i].startDate
+          .difference(sorted[i - 1].startDate)
+          .inDays;
       if (days >= 15 && days <= 60) {
         cycleLengths.add(days);
       }
@@ -93,20 +96,32 @@ class CyclePredictor {
         ? safeCycleLength
         : _weightedAverage(cycleLengths.takeLast(6));
 
-    final periodDurations = sorted.map((log) => log.periodDuration).where((days) => days >= 1 && days <= 14).toList();
+    final periodDurations = sorted
+        .map((log) => log.periodDuration)
+        .where((days) => days >= 1 && days <= 14)
+        .toList();
     final averagePeriodDuration = periodDurations.isEmpty
         ? safePeriodDuration
-        : (periodDurations.reduce((a, b) => a + b) / periodDurations.length).round();
+        : (periodDurations.reduce((a, b) => a + b) / periodDurations.length)
+              .round();
 
     final lastPeriodStart = sorted.last.startDate;
     final today = normalizeDate(DateTime.now());
-    var nextPeriodStart = normalizeDate(lastPeriodStart.add(Duration(days: weightedCycleLength)));
+    var nextPeriodStart = normalizeDate(
+      lastPeriodStart.add(Duration(days: weightedCycleLength)),
+    );
     while (!nextPeriodStart.isAfter(today)) {
-      nextPeriodStart = normalizeDate(nextPeriodStart.add(Duration(days: weightedCycleLength)));
+      nextPeriodStart = normalizeDate(
+        nextPeriodStart.add(Duration(days: weightedCycleLength)),
+      );
     }
 
-    final nextPeriodEnd = normalizeDate(nextPeriodStart.add(Duration(days: averagePeriodDuration - 1)));
-    final ovulation = nextPeriodStart.subtract(const Duration(days: _lutealPhaseLength));
+    final nextPeriodEnd = normalizeDate(
+      nextPeriodStart.add(Duration(days: averagePeriodDuration - 1)),
+    );
+    final ovulation = nextPeriodStart.subtract(
+      const Duration(days: _lutealPhaseLength),
+    );
     final fertileStart = ovulation.subtract(const Duration(days: 5));
 
     return CyclePrediction(
@@ -135,21 +150,37 @@ class CyclePredictor {
       fallbackPeriodDuration: fallbackPeriodDuration,
     );
 
-    final sortedPeriods = periodLogs.map((period) => period.normalized()).toList()
-      ..sort((a, b) => a.startDate.compareTo(b.startDate));
-    final sortedSymptoms = symptomLogs.map((entry) => entry.normalized()).toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final sortedPeriods =
+        periodLogs.map((period) => period.normalized()).toList()
+          ..sort((a, b) => a.startDate.compareTo(b.startDate));
+    final sortedSymptoms =
+        symptomLogs.map((entry) => entry.normalized()).toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
 
     final cycles = <Cycle>[];
     for (var i = 0; i < sortedPeriods.length; i++) {
       final period = sortedPeriods[i];
-      final nextStart = i < sortedPeriods.length - 1 ? sortedPeriods[i + 1].startDate : null;
+      final nextStart = i < sortedPeriods.length - 1
+          ? sortedPeriods[i + 1].startDate
+          : null;
       final cycleLength = nextStart?.difference(period.startDate).inDays;
-      final cycleEnd = nextStart == null ? period.endDate : nextStart.subtract(const Duration(days: 1));
+      final cycleEnd = nextStart == null
+          ? period.endDate
+          : nextStart.subtract(const Duration(days: 1));
       final entries = sortedSymptoms
-          .where((symptom) => !symptom.date.isBefore(period.startDate) && !symptom.date.isAfter(cycleEnd))
+          .where(
+            (symptom) =>
+                !symptom.date.isBefore(period.startDate) &&
+                !symptom.date.isAfter(cycleEnd),
+          )
           .toList(growable: false);
-      cycles.add(Cycle.fromPeriodLog(log: period, cycleLength: cycleLength, symptoms: entries));
+      cycles.add(
+        Cycle.fromPeriodLog(
+          log: period,
+          cycleLength: cycleLength,
+          symptoms: entries,
+        ),
+      );
     }
 
     final counts = <String, int>{};
@@ -159,7 +190,11 @@ class CyclePredictor {
       }
     }
 
-    return CycleAnalytics(prediction: prediction, cycles: cycles, symptomCounts: counts);
+    return CycleAnalytics(
+      prediction: prediction,
+      cycles: cycles,
+      symptomCounts: counts,
+    );
   }
 
   static int _weightedAverage(List<int> values) {
@@ -180,7 +215,10 @@ class CyclePredictor {
 
     final avg = cycleLengths.reduce((a, b) => a + b) / cycleLengths.length;
     final variance =
-        cycleLengths.map((value) => (value - avg) * (value - avg)).reduce((a, b) => a + b) / cycleLengths.length;
+        cycleLengths
+            .map((value) => (value - avg) * (value - avg))
+            .reduce((a, b) => a + b) /
+        cycleLengths.length;
     final stdDev = variance.sqrt();
 
     final normalized = 1 - (stdDev / 8.0);

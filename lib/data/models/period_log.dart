@@ -6,7 +6,8 @@ class PeriodLog {
   final DateTime startDate;
   final DateTime endDate;
 
-  int get periodDuration => normalizeDate(endDate).difference(normalizeDate(startDate)).inDays + 1;
+  int get periodDuration =>
+      normalizeDate(endDate).difference(normalizeDate(startDate)).inDays + 1;
 
   PeriodLog normalized() {
     final normalizedStart = normalizeDate(startDate);
